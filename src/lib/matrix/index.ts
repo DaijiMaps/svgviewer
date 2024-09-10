@@ -1,17 +1,8 @@
 import { apply, applyF } from './apply'
-import {
-  empty,
-  H,
-  matrix,
-  Matrix,
-  prod,
-  toString,
-  V,
-  vecFromV,
-  vecToV,
-} from './main'
+import { empty, H, matrix, Matrix, prod, V } from './main'
 import { multiply, multiplyF } from './multiply'
 import { scale, scaleAt } from './scale'
+import { toString } from './toString'
 import { translate } from './translate'
 
 export type { H, Matrix, V }
@@ -28,6 +19,4 @@ export {
   scaleAt,
   toString,
   translate,
-  vecFromV,
-  vecToV,
 }

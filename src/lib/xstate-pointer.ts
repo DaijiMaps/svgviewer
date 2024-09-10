@@ -226,11 +226,6 @@ export const pointerMachine = setup({
         pos: drag.start,
       })
     },
-    animationZoom: assign({
-      animation: ({ context: { layout, focus, z } }): null | Animation =>
-        animationZoom(layout, z, focus),
-      nextZoom: ({ context: { zoom, z } }): number => zoom + z,
-    }),
     zoomKey: assign({
       z: (_, { ev }: { ev: KeyboardEvent }): number => keyToZoom(ev.key),
     }),
@@ -243,7 +238,12 @@ export const pointerMachine = setup({
       focus: ({ context: { focus, touches } }) =>
         touches.zoom === null ? focus : touches.zoom.p,
     }),
-    zoomEnd: assign({
+    startZoom: assign({
+      animation: ({ context: { layout, focus, z } }): null | Animation =>
+        animationZoom(layout, z, focus),
+      nextZoom: ({ context: { zoom, z } }): number => zoom + z,
+    }),
+    endZoom: assign({
       layout: ({ context: { layout, animation } }): Layout =>
         animation === null ? layout : animationEndLayout(layout, animation),
       zoom: ({ context: { nextZoom } }): number => nextZoom,
@@ -264,18 +264,18 @@ export const pointerMachine = setup({
       focus: (_, { ev }: { ev: MouseEvent | PointerEvent }): Vec =>
         vecVec(ev.pageX, ev.pageY),
     }),
-    dragStart: assign({
+    startDrag: assign({
       drag: ({ context: { layout, focus } }): Drag =>
         dragStart(layout.container, focus),
     }),
-    dragMove: assign({
+    moveDrag: assign({
       drag: (
         { context: { drag } },
         { ev }: { ev: PointerEvent }
       ): null | Drag =>
         drag === null ? null : dragMove(drag, vecVec(ev.pageX, ev.pageY)),
     }),
-    animationMove: assign({
+    startMove: assign({
       animation: (
         { context: { drag, animation } },
         { ev, relative }: { ev: KeyboardEvent; relative: number }
@@ -284,7 +284,7 @@ export const pointerMachine = setup({
           ? animation
           : animationMove(drag, vecScale(keyToDir(ev.key), relative)),
     }),
-    dragEnd: assign({
+    endMove: assign({
       layout: ({ context: { layout, drag } }): Layout =>
         drag === null ? layout : moveLayout(layout, drag.move),
       animation: () => null,
@@ -374,9 +374,9 @@ export const pointerMachine = setup({
                   params: ({ event }) => ({ ev: event.ev }),
                 },
                 actions: [
-                  'dragStart',
+                  'startDrag',
                   {
-                    type: 'animationMove',
+                    type: 'startMove',
                     params: ({ event }) => ({ ev: event.ev, relative: 500 }),
                   },
                 ],
@@ -419,7 +419,7 @@ export const pointerMachine = setup({
                     type: 'zoomKey',
                     params: ({ event }) => ({ ev: event.ev }),
                   },
-                  'animationZoom',
+                  'startZoom',
                 ],
                 target: 'Zooming',
               },
@@ -438,7 +438,7 @@ export const pointerMachine = setup({
                   type: 'zoomWheel',
                   params: ({ event }) => ({ ev: event.ev }),
                 },
-                'animationZoom',
+                'startZoom',
               ],
               target: 'Zooming',
             },
@@ -592,7 +592,7 @@ export const pointerMachine = setup({
               },
             },
             Active: {
-              entry: 'dragStart',
+              entry: 'startDrag',
               on: {
                 'POINTER.MOVE': [
                   {
@@ -603,7 +603,7 @@ export const pointerMachine = setup({
                         params: ({ event }) => ({ ev: event.ev }),
                       },
                       {
-                        type: 'dragMove',
+                        type: 'moveDrag',
                         params: ({ event }) => ({ ev: event.ev }),
                       },
                       'slideScroll',
@@ -613,7 +613,7 @@ export const pointerMachine = setup({
                 ],
                 'SLIDE.DRAG.DONE': {
                   guard: not('slidingDragBusy'),
-                  actions: 'dragEnd',
+                  actions: 'endMove',
                   target: 'Active',
                 },
                 'POINTER.UP': [
@@ -640,7 +640,7 @@ export const pointerMachine = setup({
               on: {
                 'SLIDE.DRAG.DONE': {
                   guard: not('slidingDragBusy'),
-                  actions: 'dragEnd',
+                  actions: 'endMove',
                   target: 'Done',
                 },
               },
@@ -757,7 +757,7 @@ export const pointerMachine = setup({
         Moving: {
           on: {
             'ANIMATION.END': {
-              actions: ['zoomEnd', 'recenterLayout', 'resetScroll'],
+              actions: ['endZoom', 'recenterLayout', 'resetScroll'],
               target: 'Done',
             },
           },
@@ -765,7 +765,7 @@ export const pointerMachine = setup({
         Zooming: {
           on: {
             'ANIMATION.END': {
-              actions: ['zoomEnd'],
+              actions: ['endZoom'],
               target: 'Done',
             },
           },
@@ -883,7 +883,7 @@ export const pointerMachine = setup({
             'TOUCH.MOVE.DONE': [
               {
                 guard: and(['touching', 'isZooming']),
-                actions: ['zoomTouches', 'animationZoom', 'resetTouches'],
+                actions: ['zoomTouches', 'startZoom', 'resetTouches'],
                 target: 'Zooming',
               },
             ],
