@@ -50,14 +50,10 @@ export type Layout = ReadonlyDeep<
 
 export function configLayout(
   svg: Box, // svg
-  origBodyViewBox?: Box
+  origBody?: Box
 ): LayoutConfig {
-  const body: Box =
-    origBodyViewBox !== undefined ? origBodyViewBox : getWindowSize()
-  // XXX svg is SVG-internal coordinate
-  // XXX does NOT matter to calc svg fit
-  const [x, y] = fit(body, svg)
-  const s = x === 0 ? svg.width / body.width : svg.height / body.height
+  const body: Box = origBody !== undefined ? origBody : getWindowSize()
+  const [[x, y], s] = fit(body, svg)
 
   const style = getComputedStyle(document.body)
   const fontSize = parseFloat(style.fontSize)

@@ -10,24 +10,9 @@ import {
 } from './layout'
 import { transformPoint, transformScale } from './transform'
 import { zoomToScale } from './utils'
-import * as vec from './vec'
 import { Vec } from './vec'
 
-//// animationMoveLayout
-//// animationZoomLayout
-
 export const animationMoveLayout = (
-  drag: LayoutDrag,
-  dx: number,
-  dy: number
-): LayoutAnimation => {
-  return {
-    move: boxMove(drag.start, vec.vec(dx, dy)),
-    zoom: null,
-  }
-}
-
-export const animationMoveLayout2 = (
   drag: LayoutDrag,
   d: Vec
 ): LayoutAnimation => {
@@ -55,8 +40,6 @@ export const animationZoomLayout = (
     },
   }
 }
-
-//// animationEndLayout
 
 export const animationEndLayout = (
   layout: Layout,

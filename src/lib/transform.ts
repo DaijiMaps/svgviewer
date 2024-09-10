@@ -1,3 +1,4 @@
+import { pipe } from 'effect'
 import { Box } from './box'
 import { Matrix, multiply, vecFromV, vecToV } from './matrix'
 import { apply } from './matrix/apply'
@@ -79,7 +80,7 @@ export { matrixScale, matrixTranslate }
 ////
 
 function transformPoint<T extends Vec>(m: Matrix, t: T): T {
-  const { x, y } = vecFromV(apply(m, vecToV(t), 1))
+  const { x, y } = pipe(t, vecToV, (v) => apply(m, v, 1), vecFromV)
   return { ...t, x, y }
 }
 

@@ -26,7 +26,7 @@ function matrix(
 export type H = ImmutableShallow<[p: number, q: number, r: number]>
 export type V = ImmutableShallow<[s: number, t: number]>
 
-export const vecToV = ({ x, y }: Vec): V => [x, y]
+export const vecToV = <T extends Vec>({ x, y }: T): V => [x, y]
 export const vecFromV = ([x, y]: V): Vec => ({ x, y })
 
 export const ab = ([a, b]: Matrix): V => [a, b]

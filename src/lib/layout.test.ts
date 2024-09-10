@@ -123,7 +123,7 @@ test('boxScale', () => {
 })
 
 test('recenter 1', () => {
-  const d1 = dragStart(layout, vec(0, 0))
+  const d1 = dragStart(layout.container, vec(0, 0))
   const l1 = recenterLayout(layout, d1.start)
   expect(l1).toStrictEqual(layout)
 })
@@ -131,7 +131,7 @@ test('recenter 1', () => {
 test('recenter 2', () => {
   const l2 = pipe(
     layout,
-    (l) => dragStart(l, focus),
+    (l) => dragStart(l.container, focus),
     (d) => dragMove(d, 600, 500),
     (d) => recenterLayout(layout, d.start)
   )
@@ -140,7 +140,7 @@ test('recenter 2', () => {
 
 test('recenter 3', () => {
   const l1 = expandLayout(layout, 2, focus)
-  const d1 = dragStart(l1, focus)
+  const d1 = dragStart(l1.container, focus)
   const d2 = dragMove(d1, 0, 0)
   const d3 = dragMove(d2, 600, 500)
   const l2 = moveLayout(l1, d3.move)
@@ -151,7 +151,7 @@ test('recenter 3', () => {
 
 test('recenter 4', () => {
   const focus = vec(0, 0)
-  const d1 = pipe(layout, (l) => dragStart(l, focus))
+  const d1 = pipe(layout, (l) => dragStart(l.container, focus))
   const ox1 = d1.start.x
   const x1 = layout.container.x
   expect(ox1).toBe(0)
@@ -178,7 +178,7 @@ test('recenter 4', () => {
   expect(x3).toBe(1)
 
   const l4 = recenterLayout(l3, d3.start)
-  const d4 = dragReset(l4)
+  const d4 = dragReset(l4.container)
   const ox4 = d4.start.x
   const x4 = d4.move.x
   expect(ox4).toBe(0)
@@ -186,15 +186,15 @@ test('recenter 4', () => {
 })
 
 test('move + zoom', () => {
-  const d1 = dragStart(layout, focus)
+  const d1 = dragStart(layout.container, focus)
   const d2 = dragMove(d1, 0, 0)
   const l2 = recenterLayout(layout, d2.start)
   const a1 = animationZoomLayout(l2, 0, 1, focus)
   const l3 = animationEndLayout(l2, a1)
   const a2 = animationZoomLayout(l3, 1, -1, focus)
   const l4 = animationEndLayout(l3, a2)
-  const d5 = dragStart(l4, focus)
-  const a6 = animationMoveLayout(d5, -1, 0)
+  const d5 = dragStart(l4.container, focus)
+  const a6 = animationMoveLayout(d5, vec(-1, 0))
   const l5 = animationEndLayout(l4, a6)
   const l6 = moveLayout(l5, d5.move)
   const l7 = recenterLayout(l6, d5.start)

@@ -12,7 +12,7 @@ import {
 } from 'xstate'
 import {
   animationEndLayout,
-  animationMoveLayout2,
+  animationMoveLayout,
   animationZoomLayout,
 } from './animation'
 import { boxCenter } from './box'
@@ -31,6 +31,9 @@ import {
   handleTouchEnd,
   handleTouchMove,
   handleTouchStart,
+  isMultiTouch,
+  isMultiTouchEnding,
+  isNotMultiTouch,
   Touches,
 } from './touch'
 import { scale, vec, Vec } from './vec'
@@ -156,20 +159,10 @@ export const pointerMachine = setup({
       ev.changedTouches.length === 1,
     isMultiTouchStarting: (_, { ev }: { ev: TouchEvent }) =>
       ev.changedTouches.length === 2,
-    isMultiTouchEnding: ({ context }) => context.touches.vecs.size === 0,
-    isMultiTouch: ({ context }) => {
-      if (context.touches.vecs.size < 2) {
-        return false
-      }
-      const [ps, qs] = context.touches.vecs.values()
-      return (
-        ps !== undefined &&
-        ps.length !== 0 &&
-        qs !== undefined &&
-        qs.length !== 0
-      )
-    },
-    isNotMultiTouch: ({ context }) => context.touches.vecs.size < 2,
+    isMultiTouch: ({ context: { touches } }) => isMultiTouch(touches),
+    isNotMultiTouch: ({ context: { touches } }) => isNotMultiTouch(touches),
+    isMultiTouchEnding: ({ context: { touches } }) =>
+      isMultiTouchEnding(touches),
     isZooming: ({ context }) => {
       return context.touches.zoom !== null
     },
@@ -287,7 +280,7 @@ export const pointerMachine = setup({
     }),
     dragStart: assign({
       drag: ({ context: { layout, focus } }): LayoutDrag =>
-        dragStart(layout, focus),
+        dragStart(layout.container, focus),
     }),
     dragMove: assign({
       drag: (
@@ -303,7 +296,7 @@ export const pointerMachine = setup({
       ): null | LayoutAnimation =>
         drag === null
           ? animation
-          : animationMoveLayout2(drag, scale(keyToDir(ev.key), relative)),
+          : animationMoveLayout(drag, scale(keyToDir(ev.key), relative)),
     }),
     dragEnd: assign({
       layout: ({ context: { layout, drag } }): Layout =>

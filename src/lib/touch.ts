@@ -91,3 +91,21 @@ export function handleTouchEnd(touches: Touches, ev: TouchEvent): Touches {
     zoom: vecs.size === 0 ? null : touches.zoom,
   }
 }
+
+export function isMultiTouch(touches: Touches): boolean {
+  if (touches.vecs.size < 2) {
+    return false
+  }
+  const [ps, qs] = touches.vecs.values()
+  return (
+    ps !== undefined && ps.length !== 0 && qs !== undefined && qs.length !== 0
+  )
+}
+
+export function isNotMultiTouch(touches: Touches): boolean {
+  return touches.vecs.size < 2
+}
+
+export function isMultiTouchEnding(touches: Touches): boolean {
+  return touches.vecs.size === 0
+}

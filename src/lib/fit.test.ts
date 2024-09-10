@@ -8,7 +8,7 @@ export const bh: Box = { x: 0, y: 0, width: 100, height: 200 }
 export const oh: Box = { x: 0, y: 0, width: 40, height: 10 }
 
 test('fitV', () => {
-  const [mx, my] = fit(bv, ov)
+  const [[mx, my]] = fit(bv, ov)
   expect(mx).toBe(87.5)
   expect(my).toBe(0)
   const w = bv.width - mx * 2
@@ -16,7 +16,7 @@ test('fitV', () => {
 })
 
 test('fitH', () => {
-  const [mx, my] = fit(bh, oh)
+  const [[mx, my]] = fit(bh, oh)
   expect(mx).toBe(0)
   expect(my).toBe(87.5)
   const h = bh.height - my * 2
