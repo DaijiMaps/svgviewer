@@ -241,6 +241,7 @@ export const pointerMachine = setup({
     startZoom: assign({
       animation: ({ context: { layout, focus, z } }): null | Animation =>
         animationZoom(layout, z, focus),
+      z: () => 0,
       nextZoom: ({ context: { zoom, z } }): number => zoom + z,
     }),
     endZoom: assign({
@@ -343,7 +344,7 @@ export const pointerMachine = setup({
   ],
   type: 'parallel',
   states: {
-    Config: {
+    Pointer: {
       initial: 'Idle',
       states: {
         Idle: {
@@ -354,15 +355,6 @@ export const pointerMachine = setup({
                 params: ({ event: { config } }) => ({ config }),
               },
             },
-          },
-        },
-      },
-    },
-    Pointer: {
-      initial: 'Idle',
-      states: {
-        Idle: {
-          on: {
             'KEY.DOWN': [
               {
                 guard: not('idle'),
@@ -886,10 +878,6 @@ export const pointerMachine = setup({
             },
           },
         },
-        Done: {
-          entry: raise({ type: 'TOUCH.DONE' }),
-          always: 'Inactive',
-        },
         Zooming: {
           entry: raise({ type: 'ANIMATION.ZOOM' }),
           on: {
@@ -897,6 +885,10 @@ export const pointerMachine = setup({
               target: 'Inactive',
             },
           },
+        },
+        Done: {
+          entry: raise({ type: 'TOUCH.DONE' }),
+          always: 'Inactive',
         },
       },
     },

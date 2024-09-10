@@ -15,8 +15,7 @@ export const Svg = (props: PropsWithChildren<SvgProps>) => {
 
   return (
     <svg
-      id="preview0"
-      className="svg preview"
+      className="svg"
       viewBox={boxToViewBox(viewBox)}
       style={{
         width,

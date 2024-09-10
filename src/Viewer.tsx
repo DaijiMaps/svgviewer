@@ -3,7 +3,7 @@ import { Container } from './Container'
 import { Debug } from './Debug'
 import { Footer } from './Footer'
 import { Guides } from './Guides'
-import { Inner } from './Inner'
+import { Header } from './Header'
 import { usePointer } from './lib/react-pointer'
 import { dragStyle, moveStyle, zoomStyle } from './lib/style'
 import { Svg } from './Svg'
@@ -26,7 +26,7 @@ export const Viewer = (props: PropsWithChildren) => {
           onAnimationEnd={() => pointerSend({ type: 'ANIMATION.END' })}
           _viewBox={layout.svg}
         >
-          <Inner>{props.children}</Inner>
+          {props.children}
         </Svg>
       </Container>
       <Guides _layout={layout} _focus={focus} />
@@ -38,6 +38,7 @@ export const Viewer = (props: PropsWithChildren) => {
         {moveStyle(pointer)}
         {zoomStyle(pointer)}
       </style>
+      <Header />
       <Footer />
     </>
   )
