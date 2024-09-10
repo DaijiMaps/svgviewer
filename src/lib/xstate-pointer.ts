@@ -65,6 +65,7 @@ export type PointerContext = {
   layout: Layout
   focus: Vec
   expand: number
+  z: number
   zoom: number
   nextZoom: number
   touches: Touches
@@ -225,41 +226,27 @@ export const pointerMachine = setup({
         pos: drag.start,
       })
     },
+    animationZoom: assign({
+      animation: ({ context: { layout, focus, z } }): null | Animation =>
+        animationZoom(layout, z, focus),
+      nextZoom: ({ context: { zoom, z } }): number => zoom + z,
+    }),
     zoomKey: assign({
-      animation: (
-        { context: { layout, focus } },
-        { ev }: { ev: KeyboardEvent }
-      ): null | Animation => animationZoom(layout, keyToZoom(ev.key), focus),
-      nextZoom: (
-        { context: { zoom } },
-        { ev }: { ev: KeyboardEvent }
-      ): number => zoom + keyToZoom(ev.key),
+      z: (_, { ev }: { ev: KeyboardEvent }): number => keyToZoom(ev.key),
     }),
     zoomWheel: assign({
-      animation: (
-        { context: { layout, focus } },
-        { ev }: { ev: WheelEvent }
-      ): null | Animation =>
-        animationZoom(layout, ev.deltaY < 0 ? 1 : -1, focus),
-      nextZoom: ({ context: { zoom } }, { ev }: { ev: WheelEvent }): number =>
-        zoom + ev.deltaY < 0 ? 1 : -1,
+      z: (_, { ev }: { ev: WheelEvent }): number => (ev.deltaY < 0 ? 1 : -1),
     }),
     zoomTouches: assign({
-      animation: ({
-        context: { animation, layout, touches },
-      }): null | Animation =>
-        touches.zoom === null
-          ? animation
-          : animationZoom(layout, touches.zoom.dir, touches.zoom.p),
-      nextZoom: ({ context: { touches, zoom } }): number =>
-        touches.zoom === null ? zoom : zoom + touches.zoom.dir,
+      z: ({ context: { touches, z } }): number =>
+        touches.zoom === null ? z : touches.zoom.dir,
       focus: ({ context: { focus, touches } }) =>
         touches.zoom === null ? focus : touches.zoom.p,
     }),
     zoomEnd: assign({
       layout: ({ context: { layout, animation } }): Layout =>
         animation === null ? layout : animationEndLayout(layout, animation),
-      zoom: ({ context: { zoom, nextZoom } }): number => zoom + nextZoom,
+      zoom: ({ context: { nextZoom } }): number => nextZoom,
     }),
     recenterLayout: assign({
       layout: ({ context: { layout, drag } }): Layout =>
@@ -332,6 +319,7 @@ export const pointerMachine = setup({
     layout,
     focus: boxCenter(layout.body),
     expand: 1,
+    z: 0,
     zoom: 0,
     nextZoom: 0,
     touches: {
@@ -426,10 +414,13 @@ export const pointerMachine = setup({
                   type: 'shouldZoom',
                   params: ({ event }) => ({ ev: event.ev }),
                 },
-                actions: {
-                  type: 'zoomKey',
-                  params: ({ event }) => ({ ev: event.ev }),
-                },
+                actions: [
+                  {
+                    type: 'zoomKey',
+                    params: ({ event }) => ({ ev: event.ev }),
+                  },
+                  'animationZoom',
+                ],
                 target: 'Zooming',
               },
             ],
@@ -447,6 +438,7 @@ export const pointerMachine = setup({
                   type: 'zoomWheel',
                   params: ({ event }) => ({ ev: event.ev }),
                 },
+                'animationZoom',
               ],
               target: 'Zooming',
             },
@@ -891,7 +883,7 @@ export const pointerMachine = setup({
             'TOUCH.MOVE.DONE': [
               {
                 guard: and(['touching', 'isZooming']),
-                actions: ['zoomTouches', 'resetTouches'],
+                actions: ['zoomTouches', 'animationZoom', 'resetTouches'],
                 target: 'Zooming',
               },
             ],

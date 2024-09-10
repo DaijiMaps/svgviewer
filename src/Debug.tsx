@@ -37,6 +37,7 @@ export const Debug = (props: DebugProps) => {
         <li>focus: {showPoint(pointer.context.focus)}</li>
         <li>expand: {showNumber(pointer.context.expand)}</li>
         <li>zoom: {showNumber(pointer.context.zoom)}</li>
+        <li>nextZoom: {showNumber(pointer.context.nextZoom)}</li>
         {container !== null && (
           <>
             <li>container.scrollLeft: {showNumber(container.scrollLeft)}</li>
