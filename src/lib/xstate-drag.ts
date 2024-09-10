@@ -1,6 +1,6 @@
 import { RefObject } from 'react'
 import { ActorRefFrom, AnyActorRef, sendTo, setup } from 'xstate'
-import { Box } from './box'
+import { BoxBox as Box } from './box/prefixed'
 import { syncScroll } from './scroll'
 import { stepMachine } from './xstate-step'
 

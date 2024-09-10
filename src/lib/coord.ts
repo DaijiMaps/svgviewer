@@ -1,9 +1,10 @@
-import { Box } from './box'
+import { BoxBox as Box, boxCopy } from './box/prefixed'
 import type { LayoutConfig } from './layout'
-import { Matrix, multiply } from './matrix'
+import { MatrixMatrix as Matrix, matrixMultiply } from './matrix/prefixed'
 import { fromTransform, invMove, Move, Scale } from './transform'
 
 //// LayoutCoord
+//// makeCoord
 //// toMatrixOuter
 //// toMatrixSvg
 
@@ -23,7 +24,7 @@ export interface LayoutCoord {
   // svg viewbox ratio (C -> S)
   svgScale: Scale
 
-  // v2i: svg viewbox (S) -> svg origin (S)
+  // svg viewbox (S) -> svg origin (S)
   svg: Box
 }
 
@@ -34,11 +35,11 @@ export const makeCoord = ({
   svgScale,
 }: Readonly<LayoutConfig>): LayoutCoord => {
   return {
-    body: structuredClone(body),
-    container: structuredClone(body),
+    body: boxCopy(body),
+    container: boxCopy(body),
     svgOffset: invMove(svgOffset),
     svgScale,
-    svg: structuredClone(svg),
+    svg: boxCopy(svg),
   }
 }
 
@@ -57,5 +58,5 @@ export const toMatrixSvg = ({
     fromTransform(svgScale),
     fromTransform(svgOffset),
     fromTransform(invMove(container)),
-  ].reduce((a, b) => multiply(a, b))
+  ].reduce((a, b) => matrixMultiply(a, b))
 }

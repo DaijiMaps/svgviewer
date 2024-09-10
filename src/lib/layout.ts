@@ -1,11 +1,16 @@
 import { ReadonlyDeep } from 'type-fest'
-import { Box, boxCenter, boxCopy, boxMove, boxScaleAt } from './box'
+import {
+  BoxBox as Box,
+  boxCenter,
+  boxCopy,
+  boxMove,
+  boxScaleAt,
+} from './box/prefixed'
 import { LayoutCoord, makeCoord, toMatrixSvg } from './coord'
 import { fit } from './fit'
-import { getWindowSize } from './react-resize'
+import { getBodySize } from './react-resize'
 import { Move, Scale, transformPoint } from './transform'
-import * as vec from './vec'
-import { Vec } from './vec'
+import { VecVec as Vec, vecScale, vecSub } from './vec/prefixed'
 
 //// LayoutConfig
 //// LayoutDrag
@@ -19,7 +24,6 @@ export type LayoutConfig = ReadonlyDeep<{
   readonly svgOffset: Move
   readonly svgScale: Scale
   readonly fontSize: number
-  readonly fontSizeSvg: number
 }>
 
 export type LayoutDrag = ReadonlyDeep<{
@@ -49,15 +53,12 @@ export type Layout = ReadonlyDeep<
 //// makeLayout
 
 export function configLayout(
-  svg: Box, // svg
+  fontSize: number,
+  svg: Box,
   origBody?: Box
 ): LayoutConfig {
-  const body: Box = origBody !== undefined ? origBody : getWindowSize()
+  const body: Box = origBody !== undefined ? origBody : getBodySize()
   const [[x, y], s] = fit(body, svg)
-
-  const style = getComputedStyle(document.body)
-  const fontSize = parseFloat(style.fontSize)
-  const fontSizeSvg = fontSize * s
 
   return {
     body,
@@ -65,7 +66,6 @@ export function configLayout(
     svgOffset: { x, y },
     svgScale: { s },
     fontSize,
-    fontSizeSvg,
   }
 }
 
@@ -91,7 +91,7 @@ export const expandLayout = (layout: Layout, s: number, focus: Vec): Layout => {
   return {
     ...layout,
     container: boxScaleAt(layout.container, s, focus.x, focus.y),
-    svgOffset: vec.scale(layout.svgOffset, s),
+    svgOffset: vecScale(layout.svgOffset, s),
     svg: boxScaleAt(layout.svg, s, o.x, o.y),
   }
 }
@@ -119,8 +119,8 @@ export const zoomLayout = (
 }
 
 export const recenterLayout = (layout: Layout, start: Box): Layout => {
-  const d = vec.sub(layout.container, start)
-  const dsvg = vec.scale(d, -layout.svgScale.s)
+  const d = vecSub(layout.container, start)
+  const dsvg = vecScale(d, -layout.svgScale.s)
 
   return {
     ...layout,

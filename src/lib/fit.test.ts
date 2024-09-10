@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { Box } from './box'
+import { BoxBox as Box } from './box/prefixed'
 import { fit } from './fit'
 
 export const bv: Box = { x: 0, y: 0, width: 200, height: 100 }

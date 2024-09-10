@@ -15,7 +15,7 @@ import {
   animationMoveLayout,
   animationZoomLayout,
 } from './animation'
-import { boxCenter } from './box'
+import { boxCenter } from './box/prefixed'
 import { dragMove, dragStart } from './drag'
 import {
   expandLayoutCenter,
@@ -36,7 +36,7 @@ import {
   isNotMultiTouch,
   Touches,
 } from './touch'
-import { scale, vec, Vec } from './vec'
+import { VecVec as Vec, vecScale, vecVec } from './vec/prefixed'
 import { dragMachine } from './xstate-drag'
 
 const DIST_LIMIT = 10
@@ -276,7 +276,7 @@ export const pointerMachine = setup({
     }),
     focus: assign({
       focus: (_, { ev }: { ev: MouseEvent | PointerEvent }): Vec =>
-        vec(ev.pageX, ev.pageY),
+        vecVec(ev.pageX, ev.pageY),
     }),
     dragStart: assign({
       drag: ({ context: { layout, focus } }): LayoutDrag =>
@@ -296,7 +296,7 @@ export const pointerMachine = setup({
       ): null | LayoutAnimation =>
         drag === null
           ? animation
-          : animationMoveLayout(drag, scale(keyToDir(ev.key), relative)),
+          : animationMoveLayout(drag, vecScale(keyToDir(ev.key), relative)),
     }),
     dragEnd: assign({
       layout: ({ context: { layout, drag } }): Layout =>

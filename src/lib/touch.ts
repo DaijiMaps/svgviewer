@@ -3,8 +3,8 @@
 /* eslint-disable functional/no-expression-statements */
 /* eslint-disable functional/prefer-immutable-types */
 /* eslint-disable functional/no-loop-statements */
-import { Vec, interpolate as vecInterpolate } from './vec'
 import { dist } from './vec/dist'
+import { VecVec as Vec, vecInterpolate } from './vec/prefixed'
 
 export interface Zoom {
   p: Vec

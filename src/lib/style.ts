@@ -1,9 +1,8 @@
 import { toMatrixOuter } from './coord'
-import * as matrix from './matrix'
-import { scaleAt } from './matrix/scale'
+import { matrixEmpty, matrixScaleAt, matrixToString } from './matrix/prefixed'
 import { matrixTranslate, transformPoint } from './transform'
 import { ifNullOr, zoomToScale } from './utils'
-import { Vec, sub as vecSub } from './vec'
+import { VecVec as Vec, vecSub } from './vec/prefixed'
 import { PointerState } from './xstate-pointer'
 
 export function dragStyle(pointer: Readonly<PointerState>) {
@@ -76,18 +75,18 @@ ${zoomInOutKeyFrames(
 }
 
 export const moveKeyFrames = (d: Vec) => {
-  const p = matrix.empty
-  const q = matrixTranslate(matrix.empty, d)
+  const p = matrixEmpty
+  const q = matrixTranslate(matrixEmpty, d)
 
   return `
 @keyframes move {
   from {
     transform-origin: left top;
-    transform: ${matrix.toString(p)};
+    transform: ${matrixToString(p)};
   }
   to {
     transform-origin: left top;
-    transform: ${matrix.toString(q)};
+    transform: ${matrixToString(q)};
   }
 }
 `
@@ -95,18 +94,18 @@ export const moveKeyFrames = (d: Vec) => {
 
 export const zoomInOutKeyFrames = (s: number, focus: Vec) => {
   const { x, y } = focus
-  const p = scaleAt([1, 1], [x, y])
-  const q = scaleAt([s, s], [x, y])
+  const p = matrixScaleAt([1, 1], [x, y])
+  const q = matrixScaleAt([s, s], [x, y])
 
   return `
 @keyframes zoomInOut {
   from {
     transform-origin: left top;
-    transform: ${matrix.toString(p)};
+    transform: ${matrixToString(p)};
   }
   to {
     transform-origin: left top;
-    transform: ${matrix.toString(q)};
+    transform: ${matrixToString(q)};
   }
 }
 `

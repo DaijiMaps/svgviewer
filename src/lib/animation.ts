@@ -1,5 +1,5 @@
 import { pipe } from 'effect'
-import { boxMove, boxScaleAt } from './box'
+import { boxMove, boxScaleAt } from './box/prefixed'
 import { toMatrixSvg } from './coord'
 import {
   Layout,
@@ -10,7 +10,7 @@ import {
 } from './layout'
 import { transformPoint, transformScale } from './transform'
 import { zoomToScale } from './utils'
-import { Vec } from './vec'
+import { VecVec as Vec } from './vec/prefixed'
 
 export const animationMoveLayout = (
   drag: LayoutDrag,

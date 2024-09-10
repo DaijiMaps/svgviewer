@@ -1,5 +1,5 @@
-import { ab, cd, ef, Matrix } from '.'
 import { apply } from './apply'
+import { ab, cd, ef, Matrix } from './main'
 
 export function multiply(p: Matrix, q: Matrix): Matrix {
   return [

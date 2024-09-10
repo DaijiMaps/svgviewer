@@ -1,11 +1,11 @@
 import { expect, test } from 'vitest'
-import * as vec from './vec'
+import { vecAdd, vecInterpolate, vecScale } from './prefixed'
 
 test('vecAdd', () => {
   const a = { x: 1, y: 1, w: 1 }
   const b = { x: 2, y: 2, w: 2 }
 
-  const c = vec.add(a, b)
+  const c = vecAdd(a, b)
   expect(a.x).toBe(1)
   expect(a.w).toBe(1)
   expect(b.x).toBe(2)
@@ -18,7 +18,7 @@ test('vecScale', () => {
   const a = { x: 1, y: 1, w: 1 }
   const s = 2
 
-  const b = vec.scale(a, s)
+  const b = vecScale(a, s)
   expect(a.x).toBe(1)
   expect(a.w).toBe(1)
   expect(b.x).toBe(2)
@@ -30,7 +30,7 @@ test('vecInterpolate', () => {
   const q = { x: 1, y: 1 }
   const t = 0.75
 
-  const r = vec.interpolate(p, q, t)
+  const r = vecInterpolate(p, q, t)
   expect(r.x).toBe(0.75)
   expect(r.y).toBe(0.75)
 })

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
-import { Matrix, V } from '.'
 import { apply } from './apply'
+import { Matrix, V } from './main'
 
 const m: Matrix = [2, 0, 0, 2, 0, 0]
 const p: V = [1, 1]

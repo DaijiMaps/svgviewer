@@ -9,6 +9,9 @@ export const zoomToScale = (z: number) => Math.pow(2, z)
 //// isNull
 //// isNotNull
 //// isUndefinedOrNull
+//// ifUndefinedOr
+//// ifNullOr
+//// ifUndefinedOrNullOr
 
 type U = undefined
 const U = undefined
@@ -27,9 +30,14 @@ export const isNotNull = <A>(a: N | A): a is A => a !== N
 export const isUndefinedOrNull = <A>(a: U | N | A): a is U | N =>
   isUndefined(a) || isNull(a)
 
+export const ifUndefinedOr = <A>(a: U | A, b: A): A =>
+  isNotUndefined(a) ? a : b
 export const ifNullOr = <A>(a: N | A, b: A): A => (isNotNull(a) ? a : b)
+export const ifUndefinedOrNullOr = <A>(a: U | N | A, b: A): A =>
+  !isUndefinedOrNull(a) ? a : b
 
-////
+//// timeoutPromise
+//// animationFramePromise
 
 export const timeoutPromise = (t: number) =>
   // eslint-disable-next-line functional/no-return-void
@@ -37,3 +45,9 @@ export const timeoutPromise = (t: number) =>
 export const animationframePromise = () =>
   // eslint-disable-next-line functional/no-return-void
   new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+
+// https://www.npmjs.com/package/is-immutable-type
+
+export type ImmutableShallow<T extends object> = {
+  readonly [P in keyof T & {}]: T[P]
+}

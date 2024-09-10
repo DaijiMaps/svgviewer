@@ -1,4 +1,4 @@
-import { Box, boxScaleAt } from './box'
+import { BoxBox as Box, boxScaleAt } from './box/prefixed'
 import { configLayout } from './layout'
 
 export const DIAG_VIEWBOX = {
@@ -15,6 +15,7 @@ export const MAP_VIEWBOX = {
   height: 1273,
 }
 
+const FONT_SIZE = 16
 const WIDTH = MAP_VIEWBOX.width
 const HEIGHT = MAP_VIEWBOX.height
 const VIEWBOX = MAP_VIEWBOX
@@ -26,9 +27,10 @@ const origViewBox: Box = boxScaleAt(
   VIEWBOX.y + HEIGHT / 2
 )
 
-const layoutConfig = configLayout(origViewBox)
+const layoutConfig = configLayout(FONT_SIZE, origViewBox)
 
 export const config = {
+  FONT_SIZE,
   WIDTH,
   HEIGHT,
   VIEWBOX,

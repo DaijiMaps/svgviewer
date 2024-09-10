@@ -1,6 +1,4 @@
 import { add, addF } from './add'
-//import { assignA, oneA, zeroA } from './assign'
-//import { copy } from './copy'
 import { dist, qdist } from './dist'
 import { div, divF } from './div'
 import { interpolate, interpolateF } from './interpolate'
@@ -15,8 +13,6 @@ export type { Vec }
 export {
   add,
   addF,
-  //assignA,
-  //copy,
   dist,
   div,
   divF,
@@ -27,7 +23,6 @@ export {
   mul,
   mulF,
   one,
-  //oneA,
   qdist,
   scale,
   scaleF,

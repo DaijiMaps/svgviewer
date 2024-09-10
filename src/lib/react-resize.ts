@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Box } from './box'
+import { BoxBox as Box } from './box/prefixed'
 
-export function getWindowSize(): Box {
+export function getBodySize(): Box {
   return {
     x: 0,
     y: 0,
@@ -11,11 +11,11 @@ export function getWindowSize(): Box {
 }
 
 export function useWindowResize(): Box {
-  const [size, setSize] = useState(getWindowSize())
+  const [size, setSize] = useState(getBodySize())
 
   useEffect(() => {
     window.addEventListener('resize', () => {
-      setSize(getWindowSize())
+      setSize(getBodySize())
     })
   }, [])
 

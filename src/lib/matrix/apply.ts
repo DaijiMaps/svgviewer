@@ -1,4 +1,4 @@
-import { ace, bdf, Matrix, prod, V } from './index'
+import { ace, bdf, Matrix, prod, V } from './main'
 
 export type Apply = (m: Matrix, v: V, n: number) => V
 

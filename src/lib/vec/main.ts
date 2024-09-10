@@ -1,4 +1,4 @@
-import { ImmutableShallow } from '../array'
+import { ImmutableShallow } from '../utils'
 
 type Vec = ImmutableShallow<{
   x: number

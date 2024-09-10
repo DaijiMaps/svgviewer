@@ -1,4 +1,4 @@
-import { Box } from './box'
+import { BoxBox as Box } from './box/prefixed'
 
 // eslint-disable-next-line functional/no-return-void, functional/prefer-immutable-types
 export const syncScroll = (e: null | HTMLElement, b: Box): void => {

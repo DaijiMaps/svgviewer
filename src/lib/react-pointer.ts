@@ -41,18 +41,24 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
   const [pointer, pointerSend, pointerRef] = useMachine(pointerMachine, {
     input: {
       containerRef,
-      layout: makeLayout(configLayout(config.origViewBox, body)),
+      layout: makeLayout(
+        configLayout(config.FONT_SIZE, config.origViewBox, body)
+      ),
     },
   })
 
-  useEffect(
-    () =>
-      pointerSend({
-        type: 'LAYOUT',
-        config: configLayout(config.origViewBox, body),
-      }),
-    [body, pointerSend]
-  )
+  useEffect(() => {
+    const style = getComputedStyle(document.body)
+
+    pointerSend({
+      type: 'LAYOUT',
+      config: configLayout(
+        parseFloat(style.fontSize),
+        config.origViewBox,
+        body
+      ),
+    })
+  }, [body, pointerSend])
 
   const layout = useSelector(pointerRef, selectLayout)
   const focus = useSelector(pointerRef, selectFocus)

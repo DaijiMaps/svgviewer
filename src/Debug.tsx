@@ -49,9 +49,6 @@ export const Debug = (props: DebugProps) => {
         <li>layout.config.svgOffset: {showPoint(layout.config.svgOffset)}</li>
         <li>layout.config.svgScale: {showNumber(layout.config.svgScale.s)}</li>
         <li>layout.config.fontSize: {showNumber(layout.config.fontSize)}</li>
-        <li>
-          layout.config.fontSizeSvg: {showNumber(layout.config.fontSizeSvg)}
-        </li>
         <li>layout.container: {showBox(layout.container)}</li>
         <li>layout.svgOffset: {showPoint(layout.svgOffset)}</li>
         <li>layout.svgScale: {showNumber(layout.svgScale.s)}</li>

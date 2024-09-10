@@ -1,5 +1,5 @@
 import { PropsWithChildren } from 'react'
-import { Box, boxToViewBox } from './lib/box'
+import { BoxBox as Box, boxToViewBox } from './lib/box/prefixed'
 import './Svg.css'
 
 interface SvgProps {

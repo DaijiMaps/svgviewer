@@ -5,7 +5,7 @@ import {
   animationMoveLayout,
   animationZoomLayout,
 } from './animation'
-import { Box, boxCenter, boxScaleAt } from './box'
+import { BoxBox as Box, boxCenter, boxScaleAt } from './box/prefixed'
 import { toMatrixSvg } from './coord'
 import { dragMove, dragReset, dragStart } from './drag'
 import {
@@ -17,12 +17,12 @@ import {
   recenterLayout,
 } from './layout'
 import { transformPoint, transformScale } from './transform'
-import { vec } from './vec'
+import { vecVec } from './vec/prefixed'
 
 const body: Box = { x: 0, y: 0, width: 1200, height: 1000 }
 const origViewBox: Box = { x: 0, y: 0, width: 100, height: 100 }
 
-const config = configLayout(origViewBox, body)
+const config = configLayout(16, origViewBox, body)
 const layout = makeLayout(config)
 const focus = boxCenter(body)
 
@@ -94,7 +94,7 @@ test('expand 2', () => {
 test('boxScale', () => {
   const s = 2
 
-  const o = vec(layout.config.body.width / 2, layout.config.body.height / 2)
+  const o = vecVec(layout.config.body.width / 2, layout.config.body.height / 2)
 
   const opsvg = transformPoint(toMatrixSvg(layout), o)
 
@@ -115,7 +115,7 @@ test('boxScale', () => {
   //const coordMatrixOuter = toMatrixOuter(coord);
   const coordMatrixSvg = toMatrixSvg(coord)
 
-  const p = vec(600, 500)
+  const p = vecVec(600, 500)
   const start = transformPoint(coordMatrixSvg, p)
 
   expect(start.x).toBeCloseTo(50)
@@ -123,7 +123,7 @@ test('boxScale', () => {
 })
 
 test('recenter 1', () => {
-  const d1 = dragStart(layout.container, vec(0, 0))
+  const d1 = dragStart(layout.container, vecVec(0, 0))
   const l1 = recenterLayout(layout, d1.start)
   expect(l1).toStrictEqual(layout)
 })
@@ -150,7 +150,7 @@ test('recenter 3', () => {
 })
 
 test('recenter 4', () => {
-  const focus = vec(0, 0)
+  const focus = vecVec(0, 0)
   const d1 = pipe(layout, (l) => dragStart(l.container, focus))
   const ox1 = d1.start.x
   const x1 = layout.container.x
@@ -194,7 +194,7 @@ test('move + zoom', () => {
   const a2 = animationZoomLayout(l3, 1, -1, focus)
   const l4 = animationEndLayout(l3, a2)
   const d5 = dragStart(l4.container, focus)
-  const a6 = animationMoveLayout(d5, vec(-1, 0))
+  const a6 = animationMoveLayout(d5, vecVec(-1, 0))
   const l5 = animationEndLayout(l4, a6)
   const l6 = moveLayout(l5, d5.move)
   const l7 = recenterLayout(l6, d5.start)

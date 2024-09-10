@@ -1,6 +1,5 @@
-import { Box, boxCenter, boxCopy, boxMove } from './box'
-import * as vec from './vec'
-import { Vec } from './vec'
+import { BoxBox as Box, boxCenter, boxCopy, boxMove } from './box/prefixed'
+import { VecVec as Vec, vecSub } from './vec/prefixed'
 
 import { LayoutDrag } from './layout'
 
@@ -19,7 +18,7 @@ export const dragMove = (
 ): LayoutDrag => {
   const o = drag.focus
   const p = { x, y }
-  const d = vec.sub(p, o)
+  const d = vecSub(p, o)
 
   return {
     ...drag,

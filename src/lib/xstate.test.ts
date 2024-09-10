@@ -15,16 +15,12 @@ const m = setup({
   states: {
     init: {
       entry: [
-        ({ context }) => console.log(context),
         assign({ a: 0 }),
-        ({ context }) => console.log(context),
         assign({ a: 2 }),
-        ({ context }) => console.log(context),
         assign({
           a: ({ context }) =>
             isDefined(context.a) ? context.a * context.a : undefined,
         }),
-        ({ context }) => console.log(context),
       ],
     },
   },

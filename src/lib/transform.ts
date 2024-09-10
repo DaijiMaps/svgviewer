@@ -1,8 +1,13 @@
 import { pipe } from 'effect'
-import { Box } from './box'
-import { Matrix, multiply, vecFromV, vecToV } from './matrix'
-import { apply } from './matrix/apply'
-import { Vec } from './vec'
+import { BoxBox as Box } from './box/prefixed'
+import {
+  MatrixMatrix as Matrix,
+  matrixApply,
+  matrixMultiply,
+  matrixVecFromV,
+  matrixVecToV,
+} from './matrix/prefixed'
+import { VecVec as Vec } from './vec/prefixed'
 
 //// Transform
 //// Move
@@ -68,11 +73,11 @@ export { fromTransform, transformMove, transformScale }
 //// matrixScale
 
 function matrixTranslate(x: Matrix, m: Move): Matrix {
-  return multiply(x, fromMove(m))
+  return matrixMultiply(x, fromMove(m))
 }
 
 function matrixScale(x: Matrix, s: Scale): Matrix {
-  return multiply(x, fromScale(s))
+  return matrixMultiply(x, fromScale(s))
 }
 
 export { matrixScale, matrixTranslate }
@@ -80,7 +85,12 @@ export { matrixScale, matrixTranslate }
 ////
 
 function transformPoint<T extends Vec>(m: Matrix, t: T): T {
-  const { x, y } = pipe(t, vecToV, (v) => apply(m, v, 1), vecFromV)
+  const { x, y } = pipe(
+    t,
+    matrixVecToV,
+    (v) => matrixApply(m, v, 1),
+    matrixVecFromV
+  )
   return { ...t, x, y }
 }
 

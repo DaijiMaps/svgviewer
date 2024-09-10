@@ -1,4 +1,4 @@
-import { Box } from './box'
+import { BoxBox as Box } from './box/prefixed'
 import { V } from './matrix'
 
 const fitH = (o: Box, r: number): V => [0, (o.height - o.width / r) / 2]
