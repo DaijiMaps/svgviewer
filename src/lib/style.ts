@@ -45,7 +45,7 @@ ${moveKeyFrames(d)}
 }
 
 export function zoomStyle(pointer: Readonly<PointerState>) {
-  const { layout, focus, zoom, animation } = pointer.context
+  const { layout, focus, zoom, nextZoom, animation } = pointer.context
 
   if (!pointer.matches({ Animator: 'Zooming' })) {
     return ''
@@ -55,7 +55,7 @@ export function zoomStyle(pointer: Readonly<PointerState>) {
     return ''
   }
 
-  const zd = ifNullOr(animation.zoom?.zoom ?? null, zoom) - zoom
+  const zd = nextZoom - zoom
 
   const zoomStyle =
     zd === 0

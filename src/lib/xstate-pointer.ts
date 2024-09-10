@@ -13,8 +13,8 @@ import {
 import {
   Animation,
   animationEndLayout,
-  animationMoveLayout,
-  animationZoomLayout,
+  animationMove,
+  animationZoom,
 } from './animation'
 import { boxCenter } from './box/prefixed'
 import { Drag, dragMove, dragStart } from './drag'
@@ -66,6 +66,7 @@ export type PointerContext = {
   focus: Vec
   expand: number
   zoom: number
+  nextZoom: number
   touches: Touches
   drag: null | Drag
   animation: null | Animation
@@ -154,17 +155,12 @@ export const pointerMachine = setup({
     shouldExpand: (_, { ev }: { ev: KeyboardEvent }) => ev.key === 'e',
     shouldMove: (_, { ev }: { ev: KeyboardEvent }) =>
       'hjkl'.indexOf(ev.key) >= 0,
-    isSingleTouchStarting: (_, { ev }: { ev: TouchEvent }) =>
-      ev.changedTouches.length === 1,
-    isMultiTouchStarting: (_, { ev }: { ev: TouchEvent }) =>
-      ev.changedTouches.length === 2,
     isMultiTouch: ({ context: { touches } }) => isMultiTouch(touches),
     isNotMultiTouch: ({ context: { touches } }) => isNotMultiTouch(touches),
     isMultiTouchEnding: ({ context: { touches } }) =>
       isMultiTouchEnding(touches),
-    isZooming: ({ context }) => {
-      return context.touches.zoom !== null
-    },
+    isExpanded: ({ context }) => context.expand !== 1,
+    isZooming: ({ context }) => context.touches.zoom !== null,
     idle: and([
       stateIn({ Pointer: 'Idle' }),
       stateIn({ Dragger: 'Inactive' }),
@@ -231,35 +227,39 @@ export const pointerMachine = setup({
     },
     zoomKey: assign({
       animation: (
-        { context: { layout, focus, zoom } },
+        { context: { layout, focus } },
         { ev }: { ev: KeyboardEvent }
-      ): null | Animation =>
-        animationZoomLayout(layout, zoom, keyToZoom(ev.key), focus),
+      ): null | Animation => animationZoom(layout, keyToZoom(ev.key), focus),
+      nextZoom: (
+        { context: { zoom } },
+        { ev }: { ev: KeyboardEvent }
+      ): number => zoom + keyToZoom(ev.key),
     }),
     zoomWheel: assign({
       animation: (
-        { context: { layout, focus, zoom } },
+        { context: { layout, focus } },
         { ev }: { ev: WheelEvent }
       ): null | Animation =>
-        animationZoomLayout(layout, zoom, ev.deltaY < 0 ? 1 : -1, focus),
+        animationZoom(layout, ev.deltaY < 0 ? 1 : -1, focus),
+      nextZoom: ({ context: { zoom } }, { ev }: { ev: WheelEvent }): number =>
+        zoom + ev.deltaY < 0 ? 1 : -1,
     }),
     zoomTouches: assign({
       animation: ({
-        context: { animation, layout, zoom, touches },
+        context: { animation, layout, touches },
       }): null | Animation =>
         touches.zoom === null
           ? animation
-          : animationZoomLayout(layout, zoom, touches.zoom.dir, touches.zoom.p),
+          : animationZoom(layout, touches.zoom.dir, touches.zoom.p),
+      nextZoom: ({ context: { touches, zoom } }): number =>
+        touches.zoom === null ? zoom : zoom + touches.zoom.dir,
       focus: ({ context: { focus, touches } }) =>
         touches.zoom === null ? focus : touches.zoom.p,
     }),
     zoomEnd: assign({
       layout: ({ context: { layout, animation } }): Layout =>
         animation === null ? layout : animationEndLayout(layout, animation),
-      zoom: ({ context: { animation, zoom } }): number =>
-        animation === null || animation.zoom === null
-          ? zoom
-          : zoom + animation.zoom.zoom,
+      zoom: ({ context: { zoom, nextZoom } }): number => zoom + nextZoom,
     }),
     recenterLayout: assign({
       layout: ({ context: { layout, drag } }): Layout =>
@@ -288,14 +288,14 @@ export const pointerMachine = setup({
       ): null | Drag =>
         drag === null ? null : dragMove(drag, vecVec(ev.pageX, ev.pageY)),
     }),
-    animationMoveLayout: assign({
+    animationMove: assign({
       animation: (
         { context: { drag, animation } },
         { ev, relative }: { ev: KeyboardEvent; relative: number }
       ): null | Animation =>
         drag === null
           ? animation
-          : animationMoveLayout(drag, vecScale(keyToDir(ev.key), relative)),
+          : animationMove(drag, vecScale(keyToDir(ev.key), relative)),
     }),
     dragEnd: assign({
       layout: ({ context: { layout, drag } }): Layout =>
@@ -333,6 +333,7 @@ export const pointerMachine = setup({
     focus: boxCenter(layout.body),
     expand: 1,
     zoom: 0,
+    nextZoom: 0,
     touches: {
       vecs: new Map(),
       dists: [],
@@ -387,7 +388,7 @@ export const pointerMachine = setup({
                 actions: [
                   'dragStart',
                   {
-                    type: 'animationMoveLayout',
+                    type: 'animationMove',
                     params: ({ event }) => ({ ev: event.ev, relative: 500 }),
                   },
                 ],
@@ -482,10 +483,38 @@ export const pointerMachine = setup({
           },
         },
         Expanding: {
-          entry: raise({ type: 'EXPAND' }),
-          on: {
-            'EXPAND.DONE': {
-              target: 'Idle',
+          initial: 'Checking',
+          onDone: 'Idle',
+          states: {
+            Checking: {
+              always: [
+                {
+                  guard: not('isExpanded'),
+                  target: 'Expanding',
+                },
+                {
+                  target: 'Unexpanding',
+                },
+              ],
+            },
+            Expanding: {
+              entry: raise({ type: 'EXPAND' }),
+              on: {
+                'EXPAND.DONE': {
+                  target: 'Done',
+                },
+              },
+            },
+            Unexpanding: {
+              entry: raise({ type: 'REFLECT' }),
+              on: {
+                'REFLECT.DONE': {
+                  target: 'Done',
+                },
+              },
+            },
+            Done: {
+              type: 'final',
             },
           },
         },
@@ -683,21 +712,12 @@ export const pointerMachine = setup({
           on: {
             'EXPAND.RENDERED': {
               actions: ['syncScroll'],
-              target: 'Done',
+              target: 'Expanded',
             },
           },
         },
-        // Expanded
-        Done: {
-          entry: raise({ type: 'EXPAND.DONE' }),
-          always: 'Unexpanded',
-        },
-      },
-    },
-    Reflector: {
-      initial: 'Expanded',
-      states: {
         Expanded: {
+          entry: raise({ type: 'EXPAND.DONE' }),
           on: {
             REFLECT: {
               target: 'Reflecting',
@@ -719,14 +739,13 @@ export const pointerMachine = setup({
         ReflectRendering: {
           on: {
             'REFLECT.RENDERED': {
-              target: 'Done',
+              target: 'Reflected',
             },
           },
         },
-        // Reflected
-        Done: {
+        Reflected: {
           entry: raise({ type: 'REFLECT.DONE' }),
-          always: 'Expanded',
+          always: 'Unexpanded',
         },
       },
     },

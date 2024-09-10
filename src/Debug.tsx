@@ -25,7 +25,6 @@ export const Debug = (props: DebugProps) => {
           ['Slider.Handler', pointer.value.Slider.Handler],
           ['Slider.Drag', pointer.value.Slider.Drag],
           ['Expander', pointer.value.Expander],
-          ['Reflector', pointer.value.Reflector],
           ['Animator', pointer.value.Animator],
           ['PointerMonitor', pointer.value.PointerMonitor],
           ['TouchHandler', pointer.value.TouchHandler],
