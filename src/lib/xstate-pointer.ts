@@ -97,10 +97,10 @@ type PointerMiscEvent =
   | { type: 'EXPAND.DONE' }
   | { type: 'EXPAND.EXPANDED' }
   | { type: 'EXPAND.RENDERED' }
-  | { type: 'REFLECT' }
-  | { type: 'REFLECT.DONE' }
-  | { type: 'REFLECT.REFLECTED' }
-  | { type: 'REFLECT.RENDERED' }
+  | { type: 'UNEXPAND' }
+  | { type: 'UNEXPAND.DONE' }
+  | { type: 'UNEXPAND.UNEXPANDED' }
+  | { type: 'UNEXPAND.RENDERED' }
 
 export type PointerDOMEvent =
   | MouseEvent
@@ -498,9 +498,9 @@ export const pointerMachine = setup({
               },
             },
             Unexpanding: {
-              entry: raise({ type: 'REFLECT' }),
+              entry: raise({ type: 'UNEXPAND' }),
               on: {
-                'REFLECT.DONE': {
+                'UNEXPAND.DONE': {
                   target: 'Done',
                 },
               },
@@ -558,14 +558,14 @@ export const pointerMachine = setup({
               entry: raise({ type: 'SLIDE' }),
               on: {
                 'SLIDE.DONE': {
-                  target: 'Reflecting',
+                  target: 'Unexpanding',
                 },
               },
             },
-            Reflecting: {
-              entry: raise({ type: 'REFLECT' }),
+            Unexpanding: {
+              entry: raise({ type: 'UNEXPAND' }),
               on: {
-                'REFLECT.DONE': {
+                'UNEXPAND.DONE': {
                   target: 'Done',
                 },
               },
@@ -594,23 +594,21 @@ export const pointerMachine = setup({
             Active: {
               entry: 'startDrag',
               on: {
-                'POINTER.MOVE': [
-                  {
-                    guard: and(['sliding', 'isNotMultiTouch']),
-                    actions: [
-                      {
-                        type: 'focus',
-                        params: ({ event }) => ({ ev: event.ev }),
-                      },
-                      {
-                        type: 'moveDrag',
-                        params: ({ event }) => ({ ev: event.ev }),
-                      },
-                      'slideScroll',
-                      raise({ type: 'SLIDE.DRAG.SLIDE' }),
-                    ],
-                  },
-                ],
+                'POINTER.MOVE': {
+                  guard: and(['sliding', 'isNotMultiTouch']),
+                  actions: [
+                    {
+                      type: 'focus',
+                      params: ({ event }) => ({ ev: event.ev }),
+                    },
+                    {
+                      type: 'moveDrag',
+                      params: ({ event }) => ({ ev: event.ev }),
+                    },
+                    'slideScroll',
+                    raise({ type: 'SLIDE.DRAG.SLIDE' }),
+                  ],
+                },
                 'SLIDE.DRAG.DONE': {
                   guard: not('slidingDragBusy'),
                   actions: 'endMove',
@@ -703,7 +701,7 @@ export const pointerMachine = setup({
         ExpandRendering: {
           on: {
             'EXPAND.RENDERED': {
-              actions: ['syncScroll'],
+              actions: 'syncScroll',
               target: 'Expanded',
             },
           },
@@ -711,32 +709,32 @@ export const pointerMachine = setup({
         Expanded: {
           entry: raise({ type: 'EXPAND.DONE' }),
           on: {
-            REFLECT: {
-              target: 'Reflecting',
+            UNEXPAND: {
+              target: 'Unexpanding',
             },
           },
         },
-        Reflecting: {
+        Unexpanding: {
           on: {
-            'REFLECT.REFLECTED': {
+            'UNEXPAND.UNEXPANDED': {
               actions: [
                 'recenterLayout',
                 'resetScroll',
                 { type: 'expand', params: { n: 1 } },
               ],
-              target: 'ReflectRendering',
+              target: 'UnexpandRendering',
             },
           },
         },
-        ReflectRendering: {
+        UnexpandRendering: {
           on: {
-            'REFLECT.RENDERED': {
-              target: 'Reflected',
+            'UNEXPAND.RENDERED': {
+              target: 'Done',
             },
           },
         },
-        Reflected: {
-          entry: raise({ type: 'REFLECT.DONE' }),
+        Done: {
+          entry: raise({ type: 'UNEXPAND.DONE' }),
           always: 'Unexpanded',
         },
       },
@@ -765,7 +763,7 @@ export const pointerMachine = setup({
         Zooming: {
           on: {
             'ANIMATION.END': {
-              actions: ['endZoom'],
+              actions: 'endZoom',
               target: 'Done',
             },
           },
@@ -826,12 +824,10 @@ export const pointerMachine = setup({
         Active: {
           on: {
             'TOUCH.START': {
-              actions: [
-                {
-                  type: 'startTouches',
-                  params: ({ event }) => ({ ev: event.ev }),
-                },
-              ],
+              actions: {
+                type: 'startTouches',
+                params: ({ event }) => ({ ev: event.ev }),
+              },
               target: 'StartDone',
             },
             'TOUCH.MOVE': {
@@ -851,7 +847,7 @@ export const pointerMachine = setup({
           },
         },
         StartDone: {
-          entry: [raise({ type: 'TOUCH.START.DONE' })],
+          entry: raise({ type: 'TOUCH.START.DONE' }),
           always: 'Active',
         },
         MoveDone: {
@@ -869,31 +865,25 @@ export const pointerMachine = setup({
       states: {
         Inactive: {
           on: {
-            'TOUCH.MOVE.DONE': [
-              {
-                guard: and([or(['idle', 'sliding']), 'isMultiTouch']),
-                target: 'Active',
-              },
-            ],
+            'TOUCH.MOVE.DONE': {
+              guard: and([or(['idle', 'sliding']), 'isMultiTouch']),
+              target: 'Active',
+            },
           },
         },
         Active: {
           entry: raise({ type: 'TOUCH' }),
           on: {
-            'TOUCH.MOVE.DONE': [
-              {
-                guard: and(['touching', 'isZooming']),
-                actions: ['zoomTouches', 'startZoom', 'resetTouches'],
-                target: 'Zooming',
-              },
-            ],
-            'TOUCH.END.DONE': [
-              {
-                guard: and(['isMultiTouchEnding']),
-                actions: ['resetTouches'],
-                target: 'Done',
-              },
-            ],
+            'TOUCH.MOVE.DONE': {
+              guard: and(['touching', 'isZooming']),
+              actions: ['zoomTouches', 'startZoom', 'resetTouches'],
+              target: 'Zooming',
+            },
+            'TOUCH.END.DONE': {
+              guard: and(['isMultiTouchEnding']),
+              actions: 'resetTouches',
+              target: 'Done',
+            },
           },
         },
         Done: {
