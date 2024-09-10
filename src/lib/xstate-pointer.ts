@@ -11,17 +11,21 @@ import {
   stateIn,
 } from 'xstate'
 import {
-  dragEnd,
-  dragMove,
-  dragStart,
-  expandLayout,
-  focusLayout,
+  animationEndLayout,
+  animationMoveLayout2,
+  animationZoomLayout,
+} from './animation'
+import { boxCenter } from './box'
+import { dragMove, dragStart } from './drag'
+import {
+  expandLayoutCenter,
   Layout,
+  LayoutAnimation,
   LayoutConfig,
+  LayoutDrag,
   makeLayout,
+  moveLayout,
   recenterLayout,
-  zoomEndLayout,
-  zoomLayout,
 } from './layout'
 import {
   handleTouchEnd,
@@ -29,7 +33,7 @@ import {
   handleTouchStart,
   Touches,
 } from './touch'
-import { Vec, vecScale } from './vec'
+import { scale, vec, Vec } from './vec'
 import { dragMachine } from './xstate-drag'
 
 const DIST_LIMIT = 10
@@ -51,13 +55,18 @@ function keyToZoom(key: string): number {
 
 export type PointerInput = {
   containerRef: RefObject<HTMLDivElement>
-  layoutConfig: LayoutConfig
+  layout: Layout
 }
 
 export type PointerContext = {
   containerRef: RefObject<HTMLDivElement>
   layout: Layout
+  focus: Vec
+  expand: number
+  zoom: number
   touches: Touches
+  drag: null | LayoutDrag
+  animation: null | LayoutAnimation
   debug: boolean
 }
 
@@ -80,7 +89,7 @@ type PointerMiscEvent =
   | { type: 'SLIDE.DRAG.DONE' }
   | { type: 'SLIDE.DRAG.SLIDE' }
   | { type: 'SLIDE.DRAG.SLIDED' }
-  | { type: 'EXPAND' }
+  | { type: 'EXPAND'; n?: number }
   | { type: 'EXPAND.DONE' }
   | { type: 'EXPAND.EXPANDED' }
   | { type: 'EXPAND.RENDERED' }
@@ -203,91 +212,103 @@ export const pointerMachine = setup({
     toggleDebug: assign({
       debug: ({ context }): boolean => !context.debug,
     }),
-    syncScroll: ({ context, system }): void => {
+    syncScroll: ({ context: { layout }, system }): void => {
       system.get('drag1').send({
         type: 'SYNC',
-        pos: context.layout.containerViewBox,
+        pos: layout.container,
       })
     },
-    slideScroll: ({ context, system }): void => {
+    slideScroll: ({ context: { layout, drag }, system }): void => {
+      if (drag === null) {
+        return
+      }
       system.get('drag1').send({
         type: 'SLIDE',
-        P: context.layout.moveContainerViewBox,
-        Q: context.layout.containerViewBox,
+        P: layout.container,
+        Q: drag.move,
       })
     },
-    resetScroll: ({ context, system }): void => {
+    resetScroll: ({ context: { drag }, system }): void => {
+      if (drag === null) {
+        return
+      }
       system.get('drag1').send({
         type: 'SYNC',
-        pos: context.layout.startContainerViewBox,
+        pos: drag.start,
       })
     },
     zoomKey: assign({
-      layout: ({ context }, { ev }: { ev: KeyboardEvent }): Layout =>
-        zoomLayout(context.layout, keyToZoom(ev.key)),
+      animation: (
+        { context: { layout, focus, zoom } },
+        { ev }: { ev: KeyboardEvent }
+      ): null | LayoutAnimation =>
+        animationZoomLayout(layout, zoom, keyToZoom(ev.key), focus),
     }),
     zoomWheel: assign({
-      layout: ({ context }, { ev }: { ev: WheelEvent }): Layout =>
-        zoomLayout(context.layout, ev.deltaY < 0 ? 1 : -1),
+      animation: (
+        { context: { layout, focus, zoom } },
+        { ev }: { ev: WheelEvent }
+      ): null | LayoutAnimation =>
+        animationZoomLayout(layout, zoom, ev.deltaY < 0 ? 1 : -1, focus),
     }),
     zoomTouches: assign({
-      layout: ({ context: { layout, touches } }): Layout =>
+      animation: ({
+        context: { animation, layout, zoom, touches },
+      }): null | LayoutAnimation =>
         touches.zoom === null
-          ? layout
-          : zoomLayout(focusLayout(layout, touches.zoom.p), touches.zoom.dir),
+          ? animation
+          : animationZoomLayout(layout, zoom, touches.zoom.dir, touches.zoom.p),
+      focus: ({ context: { focus, touches } }) =>
+        touches.zoom === null ? focus : touches.zoom.p,
     }),
     zoomEnd: assign({
-      layout: ({ context }): Layout => zoomEndLayout(context.layout),
+      layout: ({ context: { layout, animation } }): Layout =>
+        animation === null ? layout : animationEndLayout(layout, animation),
+      zoom: ({ context: { animation, zoom } }): number =>
+        animation === null || animation.zoom === null
+          ? zoom
+          : zoom + animation.zoom.zoom,
     }),
     recenterLayout: assign({
-      layout: ({ context }): Layout => recenterLayout(context.layout),
+      layout: ({ context: { layout, drag } }): Layout =>
+        drag === null ? layout : recenterLayout(layout, drag.start),
     }),
     resetLayout: assign({
-      layout: ({ context }): Layout => makeLayout(context.layout.config),
-    }),
-    toggleExpand: assign({
-      layout: ({ context }): Layout =>
-        expandLayout(context.layout, context.layout.expand === 1 ? 3 : 1),
+      layout: ({ context: { layout } }): Layout => makeLayout(layout.config),
     }),
     expand: assign({
-      layout: ({ context }, { n }: { n: number }): Layout =>
-        expandLayout(context.layout, n),
+      layout: ({ context: { layout, expand } }, { n }: { n: number }): Layout =>
+        expandLayoutCenter(layout, n / expand),
+      expand: (_, { n }: { n: number }): number => n,
     }),
     focus: assign({
-      layout: (
-        { context },
-        { ev }: { ev: MouseEvent | PointerEvent }
-      ): Layout =>
-        focusLayout(context.layout, new DOMPointReadOnly(ev.pageX, ev.pageY)),
-    }),
-    updateFocus: assign({
-      layout: ({ context }): Layout =>
-        focusLayout(context.layout, context.layout.focus),
+      focus: (_, { ev }: { ev: MouseEvent | PointerEvent }): Vec =>
+        vec(ev.pageX, ev.pageY),
     }),
     dragStart: assign({
-      layout: ({ context }): Layout => dragStart(context.layout),
+      drag: ({ context: { layout, focus } }): LayoutDrag =>
+        dragStart(layout, focus),
     }),
     dragMove: assign({
-      layout: (
-        { context },
-        {
-          ev,
-          relative,
-        }: { ev: PointerEvent | KeyboardEvent; relative?: number }
-      ): Layout => {
-        if ('key' in ev && typeof relative === 'number') {
-          const dir = keyToDir(ev.key)
-          const d = vecScale(dir, relative)
-          return dragMove(context.layout, 0, 0, d.x, d.y)
-        } else if ('pageX' in ev && 'pageY' in ev) {
-          return dragMove(context.layout, ev.pageX, ev.pageY)
-        } else {
-          return context.layout
-        }
-      },
+      drag: (
+        { context: { drag } },
+        { ev }: { ev: PointerEvent }
+      ): null | LayoutDrag =>
+        drag === null ? null : dragMove(drag, ev.pageX, ev.pageY),
+    }),
+    animationMoveLayout: assign({
+      animation: (
+        { context: { drag, animation } },
+        { ev, relative }: { ev: KeyboardEvent; relative: number }
+      ): null | LayoutAnimation =>
+        drag === null
+          ? animation
+          : animationMoveLayout2(drag, scale(keyToDir(ev.key), relative)),
     }),
     dragEnd: assign({
-      layout: ({ context }): Layout => dragEnd(context.layout),
+      layout: ({ context: { layout, drag } }): Layout =>
+        drag === null ? layout : moveLayout(layout, drag.move),
+      animation: () => null,
     }),
     startTouches: assign({
       touches: ({ context }, { ev }: { ev: TouchEvent }) =>
@@ -314,14 +335,19 @@ export const pointerMachine = setup({
   },
 }).createMachine({
   id: 'pointer',
-  context: ({ input: { containerRef, layoutConfig } }) => ({
+  context: ({ input: { containerRef, layout } }) => ({
     containerRef,
-    layout: makeLayout(layoutConfig),
+    layout,
+    focus: boxCenter(layout.body),
+    expand: 1,
+    zoom: 0,
     touches: {
       vecs: new Map(),
       dists: [],
       zoom: null,
     },
+    drag: null,
+    animation: null,
     debug: false,
   }),
   invoke: [
@@ -369,7 +395,7 @@ export const pointerMachine = setup({
                 actions: [
                   'dragStart',
                   {
-                    type: 'dragMove',
+                    type: 'animationMoveLayout',
                     params: ({ event }) => ({ ev: event.ev, relative: 500 }),
                   },
                 ],
@@ -396,7 +422,6 @@ export const pointerMachine = setup({
                   type: 'shouldExpand',
                   params: ({ event }) => ({ ev: event.ev }),
                 },
-                actions: 'toggleExpand',
                 target: 'expanding',
               },
               {
@@ -509,7 +534,7 @@ export const pointerMachine = setup({
           onDone: 'inactive',
           states: {
             expanding: {
-              entry: raise({ type: 'EXPAND' }),
+              entry: raise({ type: 'EXPAND', n: 3 }),
               on: {
                 'EXPAND.DONE': {
                   target: 'sliding',
@@ -560,6 +585,10 @@ export const pointerMachine = setup({
                   {
                     guard: and(['sliding', 'isNotMultiTouch']),
                     actions: [
+                      {
+                        type: 'focus',
+                        params: ({ event }) => ({ ev: event.ev }),
+                      },
                       {
                         type: 'dragMove',
                         params: ({ event }) => ({ ev: event.ev }),
@@ -641,7 +670,12 @@ export const pointerMachine = setup({
         unexpanded: {
           on: {
             EXPAND: {
-              actions: { type: 'expand', params: { n: 3 } },
+              actions: {
+                type: 'expand',
+                params: ({ context: { expand }, event: { n } }) => ({
+                  n: n !== undefined ? n : expand === 1 ? 3 : 1,
+                }),
+              },
               target: 'expanding',
             },
           },
@@ -718,12 +752,7 @@ export const pointerMachine = setup({
         moving: {
           on: {
             'ANIMATION.END': {
-              actions: [
-                'zoomEnd',
-                'updateFocus',
-                'recenterLayout',
-                'resetScroll',
-              ],
+              actions: ['zoomEnd', 'recenterLayout', 'resetScroll'],
               target: 'done',
             },
           },

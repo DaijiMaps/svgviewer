@@ -2,7 +2,7 @@
 import { useMachine, useSelector } from '@xstate/react'
 import { RefObject, useCallback, useEffect } from 'react'
 import { config } from './config'
-import { configLayout } from './layout'
+import { configLayout, makeLayout } from './layout'
 import { useWindowResize } from './react-resize'
 import {
   pointerMachine,
@@ -34,16 +34,17 @@ const usePointerKey = (send: PointerSend) => {
 }
 
 const selectLayout = (pointer: PointerState) => pointer.context.layout
+const selectFocus = (pointer: PointerState) => pointer.context.focus
 
 //const inspector = createBrowserInspector()
 
 export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
-  const bodyViewBox = useWindowResize()
+  const body = useWindowResize()
 
   const [pointer, pointerSend, pointerRef] = useMachine(pointerMachine, {
     input: {
       containerRef,
-      layoutConfig: configLayout(config.origViewBox, bodyViewBox),
+      layout: makeLayout(configLayout(config.origViewBox, body)),
     },
     //inspect: inspector.inspect,
     inspect: (ev) => {
@@ -63,12 +64,13 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
     () =>
       pointerSend({
         type: 'LAYOUT',
-        config: configLayout(config.origViewBox, bodyViewBox),
+        config: configLayout(config.origViewBox, body),
       }),
-    [bodyViewBox, pointerSend]
+    [body, pointerSend]
   )
 
   const layout = useSelector(pointerRef, selectLayout)
+  const focus = useSelector(pointerRef, selectFocus)
 
   usePointerKey(pointerSend)
 
@@ -126,5 +128,6 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
     pointerSend,
     pointerRef,
     layout,
+    focus,
   }
 }

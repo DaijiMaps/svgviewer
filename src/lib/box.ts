@@ -1,5 +1,9 @@
 //// Box
 
+import { pipe } from 'effect'
+import { Matrix, V } from './matrix'
+import { apply } from './matrix/apply'
+import { scaleAt } from './matrix/scale'
 import { Vec } from './vec'
 
 //// Box
@@ -47,28 +51,32 @@ export function boxToViewBox({ x, y, width, height }: Box): string {
 //// boxToTlBr
 //// boxFromTlBr
 
-export type TlBr = ReadonlyArray<DOMPointReadOnly>
+export type TlBr = Readonly<[tl: V, br: V]>
+
+function mapF([tl, br]: TlBr, f: (_v: V) => V): TlBr {
+  return [f(tl), f(br)]
+}
 
 export function boxToTlBr({ x, y, width, height }: Box): TlBr {
   return [
-    new DOMPointReadOnly(x, y),
-    new DOMPointReadOnly(x + width, y + height),
+    [x, y],
+    [x + width, y + height],
   ]
 }
 
-export function boxFromTlBr([tl, br]: TlBr): Box {
+export function boxFromTlBr([[tlx, tly], [brx, bry]]: TlBr): Box {
   return {
-    x: tl.x,
-    y: tl.y,
-    width: br.x - tl.x,
-    height: br.y - tl.y,
+    x: tlx,
+    y: tly,
+    width: brx - tlx,
+    height: bry - tly,
   }
 }
 
 //// boxTransform
 
-export const boxTransform = (b: Box, m: Readonly<DOMMatrixReadOnly>): Box =>
-  boxFromTlBr(boxToTlBr(b).map((p) => p.matrixTransform(m)))
+export const boxTransform = (b: Box, m: Matrix): Box =>
+  pipe(b, boxToTlBr, (tlbr) => mapF(tlbr, (v) => apply(m, v, 1)), boxFromTlBr)
 
 //// boxScaleAt
 //// boxScaleAtRatio
@@ -76,7 +84,7 @@ export const boxTransform = (b: Box, m: Readonly<DOMMatrixReadOnly>): Box =>
 //// boxScaleAtOff
 
 export const boxScaleAt = (b: Box, s: number, cx: number, cy: number): Box =>
-  boxTransform(b, new DOMMatrixReadOnly().scale(s, s, 1, cx, cy))
+  boxTransform(b, scaleAt([s, s], [cx, cy]))
 
 export const boxScaleAtRatio = (
   b: Box,
@@ -91,20 +99,13 @@ export const boxScaleAtCenter = (b: Box, s: number): Box =>
 export const boxScaleAtOff = (b: Box, s: number, dx: number, dy: number): Box =>
   boxScaleAt(b, s, b.x + b.width * 0.5 + dx, b.y + b.height * 0.5 + dy)
 
-//// Viewport
-
-export type Viewport = Readonly<{
-  outer: Box
-  inner: Box
-}>
-
 //// boxExpandAt
 //// boxExpandAtRatio
 //// boxExpandAtCenter
 //// boxExpandAtOff
 
 export const boxExpandAt = (b: Box, s: number, cx: number, cy: number): Box => {
-  const r = boxTransform(b, new DOMMatrixReadOnly().scale(s, s, 1, cx, cy))
+  const r = boxTransform(b, scaleAt([s, s], [cx, cy]))
   return {
     x: -r.x,
     y: -r.y,

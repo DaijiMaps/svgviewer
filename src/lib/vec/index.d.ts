@@ -1,6 +1,6 @@
 import { add, addF } from './add'
-import { assignA, oneA, zeroA } from './assign'
-import { copy } from './copy'
+//import { assignA, oneA, zeroA } from './assign'
+//import { copy } from './copy'
 import { dist, qdist } from './dist'
 import { div, divF } from './div'
 import { one, vec, zero } from './index'
@@ -12,8 +12,8 @@ import { sub, subF } from './sub'
 export {
   add,
   addF,
-  assignA,
-  copy,
+  //assignA,
+  //copy,
   dist,
   div,
   divF,
@@ -22,7 +22,7 @@ export {
   mul,
   mulF,
   one,
-  oneA,
+  //oneA,
   qdist,
   scale,
   scaleF,
@@ -30,5 +30,4 @@ export {
   subF,
   vec,
   zero,
-  zeroA,
 }

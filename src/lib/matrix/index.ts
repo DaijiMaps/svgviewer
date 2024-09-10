@@ -1,13 +1,16 @@
-export type Matrix = [
-  a: number,
-  b: number,
-  c: number,
-  d: number,
-  e: number,
-  f: number,
-]
+import { ImmutableShallow } from '../array'
+import { Vec } from '../vec'
+import { multiply } from './multiply'
 
-export function matrix(
+type Matrix = ImmutableShallow<
+  [a: number, b: number, c: number, d: number, e: number, f: number]
+>
+
+const empty: Matrix = [1, 0, 0, 1, 0, 0]
+
+////
+
+function matrix(
   a: number,
   b: number,
   c: number,
@@ -18,8 +21,13 @@ export function matrix(
   return [a, b, c, d, e, f]
 }
 
-export type H = [p: number, q: number, r: number]
-export type V = [s: number, t: number]
+////
+
+export type H = ImmutableShallow<[p: number, q: number, r: number]>
+export type V = ImmutableShallow<[s: number, t: number]>
+
+export const vecToV = ({ x, y }: Vec): V => [x, y]
+export const vecFromV = ([x, y]: V): Vec => ({ x, y })
 
 export const ab = ([a, b]: Matrix): V => [a, b]
 export const cd = ([, , c, d]: Matrix): V => [c, d]
@@ -30,3 +38,15 @@ export const bdf = ([, b, , d, , f]: Matrix): H => [b, d, f]
 
 export const prod = ([p, q, r]: H, [s, t]: V, n: number): number =>
   p * s + q * t + r * n
+
+////
+
+function toString([a, b, c, d, e, f]: Matrix): string {
+  return `matrix(${a},${b},${c},${d},${e},${f})`
+}
+
+////
+
+export type { Matrix }
+
+export { empty, matrix, multiply, toString }

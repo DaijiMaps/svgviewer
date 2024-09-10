@@ -37,7 +37,12 @@ export default [
   },
   {
     ...functional.configs.recommended,
-    ignores: ['**/*', '!**/misc.test.ts', '!src/lib/{box,vec}.ts'],
+    ignores: [
+      '**/*.{jsx,tsx}',
+      '**/*.test.{js,ts}',
+      '**/react-*.{js,ts}',
+      '**/xstate-*.{js,ts}',
+    ],
   },
   {
     ...functional.configs.strict,

@@ -1,7 +1,7 @@
 import { ActorRefFrom, AnyActorRef, assign, sendTo, setup } from 'xstate'
 import { Box } from './box'
 import { isDefined, isNotNull } from './utils'
-import { vecInterpolate } from './vec'
+import { interpolate as vecInterpolate } from './vec'
 import { animationFrameLogic } from './xstate-animation-frame'
 
 // XXX

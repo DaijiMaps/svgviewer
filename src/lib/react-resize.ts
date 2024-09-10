@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Box } from './box'
 
-function getWindowSize() {
+export function getWindowSize(): Box {
   return {
     x: 0,
     y: 0,

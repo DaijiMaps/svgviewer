@@ -1,11 +1,11 @@
 import { expect, test } from 'vitest'
 import { Box, boxScaleAt, boxScaleAtCenter, boxTransform } from './box'
+import { scaleAt } from './matrix/scale'
 
 const u: Box = { x: 0, y: 0, width: 1, height: 1 }
-const m = new DOMMatrixReadOnly()
 
 test('box origin scale', () => {
-  const xf = m.scale(2, 2, 1, 0, 0)
+  const xf = scaleAt([2, 2], [0, 0])
   const b = boxTransform(u, xf)
   expect(b).toStrictEqual({
     x: 0,
@@ -16,7 +16,7 @@ test('box origin scale', () => {
 })
 
 test('box center scale', () => {
-  const xf = m.scale(2, 2, 1, 0.5, 0.5)
+  const xf = scaleAt([2, 2], [0.5, 0.5])
   const b = boxTransform(u, xf)
   expect(b).toStrictEqual({
     x: -0.5,

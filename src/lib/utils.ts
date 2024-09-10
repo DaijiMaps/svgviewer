@@ -32,6 +32,8 @@ export const ifNullOr = <A>(a: N | A, b: A): A => (isNotNull(a) ? a : b)
 ////
 
 export const timeoutPromise = (t: number) =>
+  // eslint-disable-next-line functional/no-return-void
   new Promise<void>((resolve) => setTimeout(() => resolve(), t))
 export const animationframePromise = () =>
+  // eslint-disable-next-line functional/no-return-void
   new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))

@@ -1,20 +1,26 @@
 import { vec } from '.'
-import { Vec } from '../vec'
+import { Vec } from './index'
 
-export function map(v: Vec, f: (_n: number) => number): Vec {
-  return vec(f(v.x), f(v.y))
+export function map<T extends Vec>(v: T, f: (_n: number) => number): T {
+  return { ...v, ...vec(f(v.x), f(v.y)) }
 }
-export const mapF: (_f: (_a: number) => number) => (_fa: Vec) => Vec =
-  (f) => (fa: Vec) =>
-    vec(f(fa.x), f(fa.y))
 
-export const map2 = (
-  va: Vec,
-  vb: Vec,
+type __f = (_a: number) => number
+export const mapF: <T extends Vec>(_f: __f) => (_fa: T) => T =
+  <T extends Vec>(f: __f) =>
+  (fa: T) => ({ ...fa, ...vec(f(fa.x), f(fa.y)) })
+
+export const map2 = <T extends Vec>(
+  va: T,
+  vb: T,
   f: (_a: number, _b: number) => number
-): Vec => vec(f(va.x, vb.x), f(va.y, vb.y))
+): T => ({ ...va, ...vec(f(va.x, vb.x), f(va.y, vb.y)) })
 
-export const map2F: (
-  _f: (_a: number, _b: number) => number
-) => (_fa: Vec) => (_fb: Vec) => Vec = (f) => (fa: Vec) => (fb: Vec) =>
-  vec(f(fa.x, fb.x), f(fa.y, fb.y))
+type __f2 = (_a: number, _b: number) => number
+export const map2F: <T extends Vec>(_f: __f2) => (_fa: T) => (_fb: T) => Vec =
+  <T extends Vec>(f: __f2) =>
+  (fa: T) =>
+  (fb: T) => ({
+    ...fa,
+    ...vec(f(fa.x, fb.x), f(fa.y, fb.y)),
+  })

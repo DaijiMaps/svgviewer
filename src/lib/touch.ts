@@ -1,4 +1,9 @@
-import { Vec, vecInterpolate } from './vec'
+/* eslint-disable functional/immutable-data */
+/* eslint-disable functional/no-conditional-statements */
+/* eslint-disable functional/no-expression-statements */
+/* eslint-disable functional/prefer-immutable-types */
+/* eslint-disable functional/no-loop-statements */
+import { Vec, interpolate as vecInterpolate } from './vec'
 import { dist } from './vec/dist'
 
 export interface Zoom {
@@ -12,15 +17,11 @@ export interface Touches {
   zoom: null | Zoom
 }
 
-function calcZoom(dists: number[], p: Vec): null | Zoom {
+function calcZoom(dists: Readonly<number[]>, p: Vec): null | Zoom {
   if (dists.length >= 4) {
-    let dir = 0
     const [d0, d1, d2, d3] = dists
-    if (d0 < d1 && d1 < d2 && d2 < d3) {
-      dir = -1
-    } else if (d0 > d1 && d1 > d2 && d2 > d3) {
-      dir = 1
-    }
+    const dir =
+      d0 < d1 && d1 < d2 && d2 < d3 ? -1 : d0 > d1 && d1 > d2 && d2 > d3 ? 1 : 0
     if (dir !== 0) {
       return { p, dir }
     }

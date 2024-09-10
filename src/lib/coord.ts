@@ -1,6 +1,7 @@
 import { Box } from './box'
 import type { LayoutConfig } from './layout'
-import { Move, Scale } from './transform'
+import { Matrix, multiply } from './matrix'
+import { fromTransform, invMove, Move, Scale } from './transform'
 
 //// LayoutCoord
 //// toMatrixOuter
@@ -10,11 +11,11 @@ export interface LayoutCoord {
   // C: client coord
   // S: svg coord
 
-  // bodyViewBox (C) size
-  bodyViewBox: Box
+  // body (C) size
+  body: Box
 
   // container (C) -> svg (C)
-  containerViewBox: Box
+  container: Box
 
   // svg (C) -> svg viewbox (C)
   svgOffset: Move
@@ -23,42 +24,38 @@ export interface LayoutCoord {
   svgScale: Scale
 
   // v2i: svg viewbox (S) -> svg origin (S)
-  svgViewBox: Box
+  svg: Box
 }
 
 export const makeCoord = ({
-  bodyViewBox,
-  svgViewBox,
+  body,
+  svg,
   svgOffset,
   svgScale,
 }: Readonly<LayoutConfig>): LayoutCoord => {
   return {
-    bodyViewBox: structuredClone(bodyViewBox),
-    containerViewBox: structuredClone(bodyViewBox),
-    svgOffset: { x: -svgOffset.x, y: -svgOffset.y },
+    body: structuredClone(body),
+    container: structuredClone(body),
+    svgOffset: invMove(svgOffset),
     svgScale,
-    svgViewBox: structuredClone(svgViewBox),
+    svg: structuredClone(svg),
   }
 }
 
-export const toMatrixOuter = ({
-  containerViewBox,
-}: Readonly<LayoutCoord>): DOMMatrixReadOnly => {
-  return new DOMMatrixReadOnly().translate(
-    -containerViewBox.x,
-    -containerViewBox.y
-  )
+export const toMatrixOuter = ({ container }: Readonly<LayoutCoord>): Matrix => {
+  return fromTransform(invMove(container))
 }
 
 export const toMatrixSvg = ({
-  containerViewBox,
+  container,
   svgOffset,
   svgScale,
-  svgViewBox,
-}: Readonly<LayoutCoord>): DOMMatrixReadOnly => {
-  return new DOMMatrixReadOnly()
-    .translate(svgViewBox.x, svgViewBox.y)
-    .scale(svgScale.s, svgScale.s)
-    .translate(svgOffset.x, svgOffset.y)
-    .translate(-containerViewBox.x, -containerViewBox.y)
+  svg,
+}: Readonly<LayoutCoord>): Matrix => {
+  return [
+    fromTransform(svg),
+    fromTransform(svgScale),
+    fromTransform(svgOffset),
+    fromTransform(invMove(container)),
+  ].reduce((a, b) => multiply(a, b))
 }

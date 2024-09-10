@@ -1,5 +1,6 @@
 import { Box } from './box'
 
+// eslint-disable-next-line functional/no-return-void, functional/prefer-immutable-types
 export const syncScroll = (e: null | HTMLElement, b: Box): void => {
   // assume valid if scrollLeft exists
   if (e === null || e.scrollLeft === null || b === null) {
@@ -10,7 +11,7 @@ export const syncScroll = (e: null | HTMLElement, b: Box): void => {
     Math.abs(e.scrollWidth - b.width) > 1 ||
     Math.abs(e.scrollHeight - b.height) > 1
   ) {
-    console.log('syncScroll: wrong element size')
+    //console.log('syncScroll: wrong element size')
     return
   }
   const left = Math.round(-b.x)
@@ -19,10 +20,14 @@ export const syncScroll = (e: null | HTMLElement, b: Box): void => {
     return
   }
   //console.log("syncScroll", e.scrollLeft, e.scrollTop, "->", left, top);
+  // eslint-disable-next-line functional/no-conditional-statements
   if (e.scrollLeft !== left) {
+    // eslint-disable-next-line functional/no-expression-statements, functional/immutable-data
     e.scrollLeft = left
   }
+  // eslint-disable-next-line functional/no-conditional-statements
   if (e.scrollTop !== top) {
+    // eslint-disable-next-line functional/no-expression-statements, functional/immutable-data
     e.scrollTop = top
   }
 }

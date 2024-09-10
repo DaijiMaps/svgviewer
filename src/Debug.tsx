@@ -35,31 +35,27 @@ export const Debug = (props: DebugProps) => {
             {k as string}: {typeof v === 'string' ? v : JSON.stringify(v)}
           </li>
         ))}
+        <li>focus: {showPoint(pointer.context.focus)}</li>
+        <li>expand: {showNumber(pointer.context.expand)}</li>
+        <li>zoom: {showNumber(pointer.context.zoom)}</li>
         {container !== null && (
           <>
             <li>container.scrollLeft: {showNumber(container.scrollLeft)}</li>
             <li>container.scrollTop: {showNumber(container.scrollTop)}</li>
           </>
         )}
-        <li>layout.config.bodyViewBox: {showBox(layout.config.bodyViewBox)}</li>
-        <li>layout.config.svgViewBox: {showBox(layout.config.svgViewBox)}</li>
+        <li>layout.config.body: {showBox(layout.config.body)}</li>
+        <li>layout.config.svg: {showBox(layout.config.svg)}</li>
         <li>layout.config.svgOffset: {showPoint(layout.config.svgOffset)}</li>
         <li>layout.config.svgScale: {showNumber(layout.config.svgScale.s)}</li>
         <li>layout.config.fontSize: {showNumber(layout.config.fontSize)}</li>
         <li>
           layout.config.fontSizeSvg: {showNumber(layout.config.fontSizeSvg)}
         </li>
-        <li>layout.focus: {showPoint(layout.focus)}</li>
-        <li>layout.expand: {showNumber(layout.expand)}</li>
-        <li>layout.zoom: {showNumber(layout.zoom)}</li>
-        <li>layout.containerViewBox: {showBox(layout.containerViewBox)}</li>
+        <li>layout.container: {showBox(layout.container)}</li>
         <li>layout.svgOffset: {showPoint(layout.svgOffset)}</li>
         <li>layout.svgScale: {showNumber(layout.svgScale.s)}</li>
-        <li>layout.svgViewBox: {showBox(layout.svgViewBox)}</li>
-        <li>
-          layout.drag.startContainerViewBox:{' '}
-          {showBox(layout.startContainerViewBox)}
-        </li>
+        <li>layout.svg: {showBox(layout.svg)}</li>
       </ul>
     </div>
   )

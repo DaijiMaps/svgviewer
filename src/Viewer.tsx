@@ -11,7 +11,7 @@ import { Svg } from './Svg'
 export const Viewer = (props: PropsWithChildren) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const { pointer, pointerSend, layout } = usePointer(containerRef)
+  const { pointer, pointerSend, layout, focus } = usePointer(containerRef)
 
   return (
     <>
@@ -21,15 +21,15 @@ export const Viewer = (props: PropsWithChildren) => {
         _pointerSend={pointerSend}
       >
         <Svg
-          width={layout.containerViewBox.width}
-          height={layout.containerViewBox.height}
+          width={layout.container.width}
+          height={layout.container.height}
           onAnimationEnd={() => pointerSend({ type: 'ANIMATION.END' })}
-          _viewBox={layout.svgViewBox}
+          _viewBox={layout.svg}
         >
           <Inner>{props.children}</Inner>
         </Svg>
       </Container>
-      <Guides _layout={layout} />
+      <Guides _layout={layout} _focus={focus} />
       {pointer.context.debug && (
         <Debug _pointer={pointer} _container={containerRef.current} />
       )}

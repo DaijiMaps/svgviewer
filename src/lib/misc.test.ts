@@ -1,5 +1,3 @@
-/* eslint-disable functional/no-return-void */
-/* eslint-disable functional/no-expression-statements */
 import { ReadonlyDeep } from 'type-fest/source/readonly-deep'
 import { expect, test } from 'vitest'
 import { ReallyReadonlyArray } from './array'

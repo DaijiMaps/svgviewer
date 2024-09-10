@@ -1,6 +1,8 @@
+/*
 import { vec } from '.'
-import { Vec } from '../vec'
+import { Vec } from './index'
 
-export function copy(src: Vec): Vec {
+export function copy<T extends Vec>(src: T): T {
   return vec(src.x, src.y)
 }
+*/

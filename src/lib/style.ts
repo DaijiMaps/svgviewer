@@ -1,9 +1,12 @@
 import { toMatrixOuter } from './coord'
+import * as matrix from './matrix'
+import { scaleAt } from './matrix/scale'
+import { matrixTranslate, transformPoint } from './transform'
 import { ifNullOr, zoomToScale } from './utils'
-import { Vec, vecSub } from './vec'
+import { Vec, sub as vecSub } from './vec'
 import { PointerState } from './xstate-pointer'
 
-export function dragStyle(pointer: PointerState) {
+export function dragStyle(pointer: Readonly<PointerState>) {
   if (!pointer.matches({ pointer: 'dragging' })) {
     return ''
   }
@@ -15,21 +18,18 @@ export function dragStyle(pointer: PointerState) {
 `
 }
 
-export function moveStyle(pointer: PointerState) {
-  const { layout } = pointer.context
+export function moveStyle(pointer: Readonly<PointerState>) {
+  const { layout, animation } = pointer.context
 
   if (!pointer.matches({ animator: 'moving' })) {
     return ''
   }
 
-  if (layout.animation === null) {
+  if (animation === null) {
     return ''
   }
 
-  const d = vecSub(
-    ifNullOr(layout.animation.containerViewBox, layout.containerViewBox),
-    layout.containerViewBox
-  )
+  const d = vecSub(ifNullOr(animation.move, layout.container), layout.container)
 
   const moveStyle =
     d.x === 0 && d.y === 0
@@ -45,19 +45,18 @@ ${moveKeyFrames(d)}
   return moveStyle
 }
 
-export function zoomStyle(pointer: PointerState) {
-  const { layout } = pointer.context
+export function zoomStyle(pointer: Readonly<PointerState>) {
+  const { layout, focus, zoom, animation } = pointer.context
 
   if (!pointer.matches({ animator: 'zooming' })) {
     return ''
   }
 
-  if (layout.animation === null) {
+  if (animation === null) {
     return ''
   }
 
-  const zd =
-    ifNullOr(layout.animation.zoom?.zoom ?? null, layout.zoom) - layout.zoom
+  const zd = ifNullOr(animation.zoom?.zoom ?? null, zoom) - zoom
 
   const zoomStyle =
     zd === 0
@@ -69,7 +68,7 @@ export function zoomStyle(pointer: PointerState) {
 }
 ${zoomInOutKeyFrames(
   zoomToScale(zd),
-  layout.focus.matrixTransform(toMatrixOuter(layout))
+  transformPoint(toMatrixOuter(layout), focus)
 )}
 `
 
@@ -77,41 +76,37 @@ ${zoomInOutKeyFrames(
 }
 
 export const moveKeyFrames = (d: Vec) => {
-  const { x, y } = d
-  const p = new DOMMatrixReadOnly().translate(0, 0)
-  const q = new DOMMatrixReadOnly().translate(x, y)
+  const p = matrix.empty
+  const q = matrixTranslate(matrix.empty, d)
 
   return `
 @keyframes move {
   from {
     transform-origin: left top;
-    transform: ${p.toString()};
+    transform: ${matrix.toString(p)};
   }
   to {
     transform-origin: left top;
-    transform: ${q.toString()};
+    transform: ${matrix.toString(q)};
   }
 }
 `
 }
 
-export const zoomInOutKeyFrames = (
-  s: number,
-  focus: { x: number; y: number }
-) => {
+export const zoomInOutKeyFrames = (s: number, focus: Vec) => {
   const { x, y } = focus
-  const p = new DOMMatrixReadOnly().scale(1, 1, 1, x, y)
-  const q = new DOMMatrixReadOnly().scale(s, s, 1, x, y)
+  const p = scaleAt([1, 1], [x, y])
+  const q = scaleAt([s, s], [x, y])
 
   return `
 @keyframes zoomInOut {
   from {
     transform-origin: left top;
-    transform: ${p.toString()};
+    transform: ${matrix.toString(p)};
   }
   to {
     transform-origin: left top;
-    transform: ${q.toString()};
+    transform: ${matrix.toString(q)};
   }
 }
 `

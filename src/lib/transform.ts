@@ -1,5 +1,7 @@
 import { Box } from './box'
-import { Matrix, multiply, Vec } from './matrix'
+import { Matrix, multiply, vecFromV, vecToV } from './matrix'
+import { apply } from './matrix/apply'
+import { Vec } from './vec'
 
 //// Transform
 //// Move
@@ -29,6 +31,22 @@ function transformScale(xf: Move | Scale, s: number) {
   return 'x' in xf ? { x: xf.x * s, y: xf.y * s } : { s: xf.s * s }
 }
 
+//// invMove
+//// invScale
+//// invTransform
+
+function invMove({ x, y }: Move): Move {
+  return { x: -x, y: -y }
+}
+function invScale({ s }: Scale): Scale {
+  return { s: 1 / s }
+}
+function invTransform(xf: Transform): Transform {
+  return 'x' in xf ? invMove(xf) : invScale(xf)
+}
+
+export { invMove, invScale, invTransform }
+
 //// fromMove
 //// fromScale
 //// fromTransform
@@ -57,3 +75,12 @@ function matrixScale(x: Matrix, s: Scale): Matrix {
 }
 
 export { matrixScale, matrixTranslate }
+
+////
+
+function transformPoint<T extends Vec>(m: Matrix, t: T): T {
+  const { x, y } = vecFromV(apply(m, vecToV(t), 1))
+  return { ...t, x, y }
+}
+
+export { transformPoint }
