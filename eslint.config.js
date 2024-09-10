@@ -1,7 +1,6 @@
 import js from '@eslint/js'
 import functional from 'eslint-plugin-functional'
 import prettierRecommended from 'eslint-plugin-prettier/recommended'
-//import pluginReact from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 import globals from 'globals'
 import ts from 'typescript-eslint'
@@ -19,7 +18,6 @@ export default [
   { languageOptions: { globals: globals.browser } },
   js.configs.recommended,
   ...ts.configs.recommended,
-  //pluginReact.configs.flat.recommended,
   {
     plugins: {
       'react-hooks': reactHooks,
