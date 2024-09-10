@@ -1,9 +1,14 @@
+import { ReadonlyDeep } from 'type-fest'
 import { BoxBox as Box, boxCenter, boxCopy, boxMove } from './box/prefixed'
 import { VecVec as Vec, vecSub } from './vec/prefixed'
 
-import { LayoutDrag } from './layout'
+export type Drag = ReadonlyDeep<{
+  focus: Vec
+  start: Box
+  move: Box
+}>
 
-export const dragStart = (container: Box, focus: Vec): LayoutDrag => {
+export const dragStart = (container: Box, focus: Vec): Drag => {
   return {
     focus: focus,
     start: boxCopy(container),
@@ -11,13 +16,8 @@ export const dragStart = (container: Box, focus: Vec): LayoutDrag => {
   }
 }
 
-export const dragMove = (
-  drag: LayoutDrag,
-  x: number,
-  y: number
-): LayoutDrag => {
+export const dragMove = (drag: Drag, p: Vec): Drag => {
   const o = drag.focus
-  const p = { x, y }
   const d = vecSub(p, o)
 
   return {
@@ -28,7 +28,7 @@ export const dragMove = (
 
 // XXX practically this is not needed if dragStart() is always called
 // XXX mainly for test (see "recenter 3")
-export const dragReset = (container: Box): LayoutDrag => {
+export const dragReset = (container: Box): Drag => {
   return {
     focus: boxCenter(container),
     start: boxCopy(container),

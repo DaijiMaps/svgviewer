@@ -1,4 +1,5 @@
 import { ReadonlyDeep } from 'type-fest'
+import { AnimationZoom } from './animation'
 import {
   BoxBox as Box,
   boxCenter,
@@ -13,34 +14,14 @@ import { Move, Scale, transformPoint } from './transform'
 import { VecVec as Vec, vecScale, vecSub } from './vec/prefixed'
 
 //// LayoutConfig
-//// LayoutDrag
-//// LayoutAnimation
-//// LayoutAnimationZoom
 //// Layout
 
 export type LayoutConfig = ReadonlyDeep<{
+  readonly fontSize: number
   readonly body: Box
   readonly svg: Box
   readonly svgOffset: Move
   readonly svgScale: Scale
-  readonly fontSize: number
-}>
-
-export type LayoutDrag = ReadonlyDeep<{
-  focus: Vec
-  start: Box
-  move: Box
-}>
-
-export type LayoutAnimationZoom = ReadonlyDeep<{
-  svg: Box
-  svgScale: Scale
-  zoom: number
-}>
-
-export type LayoutAnimation = ReadonlyDeep<{
-  move: null | Box
-  zoom: null | LayoutAnimationZoom
 }>
 
 export type Layout = ReadonlyDeep<
@@ -61,11 +42,11 @@ export function configLayout(
   const [[x, y], s] = fit(body, svg)
 
   return {
+    fontSize,
     body,
     svg,
     svgOffset: { x, y },
     svgScale: { s },
-    fontSize,
   }
 }
 
@@ -107,10 +88,7 @@ export const moveLayout = (layout: Layout, move: Box): Layout => {
   }
 }
 
-export const zoomLayout = (
-  layout: Layout,
-  zoom: LayoutAnimationZoom
-): Layout => {
+export const zoomLayout = (layout: Layout, zoom: AnimationZoom): Layout => {
   return {
     ...layout,
     svg: boxCopy(zoom.svg),

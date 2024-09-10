@@ -1,28 +1,40 @@
-import { V } from '../matrix'
-import { Box } from './main'
+import { VecVec as Vec } from '../vec/prefixed'
+import { B, Box } from './main'
 
 //// TlBr
 //// toTlBr
 //// fromTlBr
+//// tlBrToB
+//// tlBrFromB
 
-export type TlBr = Readonly<[tl: V, br: V]>
-
-export function mapF([tl, br]: TlBr, f: (_v: V) => V): TlBr {
-  return [f(tl), f(br)]
-}
+export type TlBr = Readonly<{ tl: Vec; br: Vec }>
 
 export function toTlBr({ x, y, width, height }: Box): TlBr {
+  return {
+    tl: { x, y },
+    br: { x: x + width, y: y + height },
+  }
+}
+
+export function fromTlBr({ tl, br }: TlBr): Box {
+  return {
+    x: tl.x,
+    y: tl.y,
+    width: br.x - tl.x,
+    height: br.y - tl.y,
+  }
+}
+
+export function tlBrToB({ tl, br }: TlBr): B {
   return [
-    [x, y],
-    [x + width, y + height],
+    [tl.x, tl.y],
+    [br.x, br.y],
   ]
 }
 
-export function fromTlBr([[tlx, tly], [brx, bry]]: TlBr): Box {
+export function tlBrFromB([[tlx, tly], [brx, bry]]: B): TlBr {
   return {
-    x: tlx,
-    y: tly,
-    width: brx - tlx,
-    height: bry - tly,
+    tl: { x: tlx, y: tly },
+    br: { x: brx, y: bry },
   }
 }

@@ -9,7 +9,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest --workspace=vitest.workspace.ts --project browser",
+    "test": "vitest --workspace=vitest.workspace.ts --project unit",
     "test:unit": "vitest --workspace=vitest.workspace.ts --project unit",
     "test:jsdom": "vitest --workspace=vitest.workspace.ts --project jsdom",
     "test:browser": "vitest --workspace=vitest.workspace.ts --project browser",

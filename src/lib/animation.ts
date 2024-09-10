@@ -1,21 +1,26 @@
 import { pipe } from 'effect'
+import { ReadonlyDeep } from 'type-fest'
+import { Box } from './box'
 import { boxMove, boxScaleAt } from './box/prefixed'
 import { toMatrixSvg } from './coord'
-import {
-  Layout,
-  LayoutAnimation,
-  LayoutDrag,
-  moveLayout,
-  zoomLayout,
-} from './layout'
-import { transformPoint, transformScale } from './transform'
+import { Drag } from './drag'
+import { Layout, moveLayout, zoomLayout } from './layout'
+import { Scale, transformPoint, transformScale } from './transform'
 import { zoomToScale } from './utils'
 import { VecVec as Vec } from './vec/prefixed'
 
-export const animationMoveLayout = (
-  drag: LayoutDrag,
-  d: Vec
-): LayoutAnimation => {
+export type AnimationZoom = ReadonlyDeep<{
+  svg: Box
+  svgScale: Scale
+  zoom: number
+}>
+
+export type Animation = ReadonlyDeep<{
+  move: null | Box
+  zoom: null | AnimationZoom
+}>
+
+export const animationMoveLayout = (drag: Drag, d: Vec): Animation => {
   return {
     move: boxMove(drag.start, d),
     zoom: null,
@@ -27,7 +32,7 @@ export const animationZoomLayout = (
   oz: number,
   z: number,
   focus: Vec
-): LayoutAnimation => {
+): Animation => {
   const s = 1 / zoomToScale(z)
   const o = transformPoint(toMatrixSvg(layout), focus)
 
@@ -43,7 +48,7 @@ export const animationZoomLayout = (
 
 export const animationEndLayout = (
   layout: Layout,
-  animation: LayoutAnimation
+  animation: Animation
 ): Layout => {
   return pipe(
     layout,

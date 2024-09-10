@@ -11,18 +11,17 @@ import {
   stateIn,
 } from 'xstate'
 import {
+  Animation,
   animationEndLayout,
   animationMoveLayout,
   animationZoomLayout,
 } from './animation'
 import { boxCenter } from './box/prefixed'
-import { dragMove, dragStart } from './drag'
+import { Drag, dragMove, dragStart } from './drag'
 import {
   expandLayoutCenter,
   Layout,
-  LayoutAnimation,
   LayoutConfig,
-  LayoutDrag,
   makeLayout,
   moveLayout,
   recenterLayout,
@@ -68,8 +67,8 @@ export type PointerContext = {
   expand: number
   zoom: number
   touches: Touches
-  drag: null | LayoutDrag
-  animation: null | LayoutAnimation
+  drag: null | Drag
+  animation: null | Animation
   debug: boolean
 }
 
@@ -234,20 +233,20 @@ export const pointerMachine = setup({
       animation: (
         { context: { layout, focus, zoom } },
         { ev }: { ev: KeyboardEvent }
-      ): null | LayoutAnimation =>
+      ): null | Animation =>
         animationZoomLayout(layout, zoom, keyToZoom(ev.key), focus),
     }),
     zoomWheel: assign({
       animation: (
         { context: { layout, focus, zoom } },
         { ev }: { ev: WheelEvent }
-      ): null | LayoutAnimation =>
+      ): null | Animation =>
         animationZoomLayout(layout, zoom, ev.deltaY < 0 ? 1 : -1, focus),
     }),
     zoomTouches: assign({
       animation: ({
         context: { animation, layout, zoom, touches },
-      }): null | LayoutAnimation =>
+      }): null | Animation =>
         touches.zoom === null
           ? animation
           : animationZoomLayout(layout, zoom, touches.zoom.dir, touches.zoom.p),
@@ -279,21 +278,21 @@ export const pointerMachine = setup({
         vecVec(ev.pageX, ev.pageY),
     }),
     dragStart: assign({
-      drag: ({ context: { layout, focus } }): LayoutDrag =>
+      drag: ({ context: { layout, focus } }): Drag =>
         dragStart(layout.container, focus),
     }),
     dragMove: assign({
       drag: (
         { context: { drag } },
         { ev }: { ev: PointerEvent }
-      ): null | LayoutDrag =>
-        drag === null ? null : dragMove(drag, ev.pageX, ev.pageY),
+      ): null | Drag =>
+        drag === null ? null : dragMove(drag, vecVec(ev.pageX, ev.pageY)),
     }),
     animationMoveLayout: assign({
       animation: (
         { context: { drag, animation } },
         { ev, relative }: { ev: KeyboardEvent; relative: number }
-      ): null | LayoutAnimation =>
+      ): null | Animation =>
         drag === null
           ? animation
           : animationMoveLayout(drag, vecScale(keyToDir(ev.key), relative)),
@@ -676,11 +675,11 @@ export const pointerMachine = setup({
         Expanding: {
           on: {
             'EXPAND.EXPANDED': {
-              target: 'Expanded',
+              target: 'ExpandRendering',
             },
           },
         },
-        Expanded: {
+        ExpandRendering: {
           on: {
             'EXPAND.RENDERED': {
               actions: ['syncScroll'],
@@ -688,6 +687,7 @@ export const pointerMachine = setup({
             },
           },
         },
+        // Expanded
         Done: {
           entry: raise({ type: 'EXPAND.DONE' }),
           always: 'Unexpanded',
@@ -712,17 +712,18 @@ export const pointerMachine = setup({
                 'resetScroll',
                 { type: 'expand', params: { n: 1 } },
               ],
-              target: 'Reflected',
+              target: 'ReflectRendering',
             },
           },
         },
-        Reflected: {
+        ReflectRendering: {
           on: {
             'REFLECT.RENDERED': {
               target: 'Done',
             },
           },
         },
+        // Reflected
         Done: {
           entry: raise({ type: 'REFLECT.DONE' }),
           always: 'Expanded',

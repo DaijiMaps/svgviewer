@@ -1,13 +1,10 @@
+import { V } from '../matrix'
+import { Size } from '../size'
 import { Vec } from '../vec'
 
 //// Box
 
-export type Box = Readonly<
-  Vec & {
-    width: number
-    height: number
-  }
->
+export type Box = Readonly<Vec & Size>
 
 //// unit
 //// copy
@@ -31,4 +28,12 @@ export function move(o: Box, v: Vec): Box {
 
 export function toViewBox({ x, y, width, height }: Box): string {
   return `${x} ${y} ${width} ${height}`
+}
+
+//// B
+
+export type B = Readonly<[tl: V, br: V]>
+
+export function mapF([tl, br]: B, f: (_v: V) => V): B {
+  return [f(tl), f(br)]
 }

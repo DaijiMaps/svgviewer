@@ -132,7 +132,7 @@ test('recenter 2', () => {
   const l2 = pipe(
     layout,
     (l) => dragStart(l.container, focus),
-    (d) => dragMove(d, 600, 500),
+    (d) => dragMove(d, vecVec(600, 500)),
     (d) => recenterLayout(layout, d.start)
   )
   expect(l2).toStrictEqual(layout)
@@ -141,8 +141,8 @@ test('recenter 2', () => {
 test('recenter 3', () => {
   const l1 = expandLayout(layout, 2, focus)
   const d1 = dragStart(l1.container, focus)
-  const d2 = dragMove(d1, 0, 0)
-  const d3 = dragMove(d2, 600, 500)
+  const d2 = dragMove(d1, vecVec(0, 0))
+  const d3 = dragMove(d2, vecVec(600, 500))
   const l2 = moveLayout(l1, d3.move)
   const l3 = recenterLayout(l2, d3.start)
   const l4 = expandLayout(l3, 1 / 2, focus)
@@ -157,7 +157,7 @@ test('recenter 4', () => {
   expect(ox1).toBe(0)
   expect(x1).toBe(0)
 
-  const d2 = dragMove(d1, 0, 0)
+  const d2 = dragMove(d1, vecVec(0, 0))
   const l2 = pipe(d2, (d) =>
     pipe(
       layout,
@@ -170,7 +170,7 @@ test('recenter 4', () => {
   expect(ox2).toBe(0)
   expect(x2).toBe(0)
 
-  const d3 = dragMove(d2, 1, 1)
+  const d3 = dragMove(d2, vecVec(1, 1))
   const l3 = moveLayout(l2, d3.move)
   const ox3 = d3.start.x
   const x3 = d3.move.x
@@ -187,7 +187,7 @@ test('recenter 4', () => {
 
 test('move + zoom', () => {
   const d1 = dragStart(layout.container, focus)
-  const d2 = dragMove(d1, 0, 0)
+  const d2 = dragMove(d1, vecVec(0, 0))
   const l2 = recenterLayout(layout, d2.start)
   const a1 = animationZoomLayout(l2, 0, 1, focus)
   const l3 = animationEndLayout(l2, a1)

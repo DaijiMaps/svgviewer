@@ -103,13 +103,13 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
     if (pointer.matches({ Expander: 'Expanding' })) {
       pointerSend({ type: 'EXPAND.EXPANDED' })
     }
-    if (pointer.matches({ Expander: 'Expanded' })) {
+    if (pointer.matches({ Expander: 'ExpandRendering' })) {
       pointerSend({ type: 'EXPAND.RENDERED' })
     }
     if (pointer.matches({ Reflector: 'Reflecting' })) {
       pointerSend({ type: 'REFLECT.REFLECTED' })
     }
-    if (pointer.matches({ Reflector: 'Reflected' })) {
+    if (pointer.matches({ Reflector: 'ReflectRendering' })) {
       pointerSend({ type: 'REFLECT.RENDERED' })
     }
   }, [pointer, pointerSend])
