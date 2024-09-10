@@ -18,18 +18,18 @@ export const Debug = (props: DebugProps) => {
       <p>Debug</p>
       <ul>
         {[
-          ['pointer', pointer.value.pointer],
-          pointer.value.dragger !== 'inactive'
-            ? ['dragger.active', pointer.value.dragger.active]
-            : ['dragger', pointer.value.dragger],
-          ['slider.handler', pointer.value.slider.handler],
-          ['slider.drag', pointer.value.slider.drag],
-          ['expander', pointer.value.expander],
-          ['reflector', pointer.value.reflector],
-          ['animator', pointer.value.animator],
-          ['pointerMonitor', pointer.value.pointerMonitor],
-          ['touchHandler', pointer.value.touchHandler],
-          ['touchMonitor', pointer.value.touchMonitor],
+          ['Pointer', pointer.value.Pointer],
+          pointer.value.Dragger !== 'Inactive'
+            ? ['Dragger.Active', pointer.value.Dragger.Active]
+            : ['Dragger', pointer.value.Dragger],
+          ['Slider.Handler', pointer.value.Slider.Handler],
+          ['Slider.Drag', pointer.value.Slider.Drag],
+          ['Expander', pointer.value.Expander],
+          ['Reflector', pointer.value.Reflector],
+          ['Animator', pointer.value.Animator],
+          ['PointerMonitor', pointer.value.PointerMonitor],
+          ['TouchHandler', pointer.value.TouchHandler],
+          ['TouchMonitor', pointer.value.TouchMonitor],
         ].map(([k, v], i) => (
           <li key={i}>
             {k as string}: {typeof v === 'string' ? v : JSON.stringify(v)}

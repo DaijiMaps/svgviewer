@@ -7,7 +7,7 @@ import { Vec, sub as vecSub } from './vec'
 import { PointerState } from './xstate-pointer'
 
 export function dragStyle(pointer: Readonly<PointerState>) {
-  if (!pointer.matches({ pointer: 'dragging' })) {
+  if (!pointer.matches({ Pointer: 'Dragging' })) {
     return ''
   }
 
@@ -21,7 +21,7 @@ export function dragStyle(pointer: Readonly<PointerState>) {
 export function moveStyle(pointer: Readonly<PointerState>) {
   const { layout, animation } = pointer.context
 
-  if (!pointer.matches({ animator: 'moving' })) {
+  if (!pointer.matches({ Animator: 'Moving' })) {
     return ''
   }
 
@@ -48,7 +48,7 @@ ${moveKeyFrames(d)}
 export function zoomStyle(pointer: Readonly<PointerState>) {
   const { layout, focus, zoom, animation } = pointer.context
 
-  if (!pointer.matches({ animator: 'zooming' })) {
+  if (!pointer.matches({ Animator: 'Zooming' })) {
     return ''
   }
 

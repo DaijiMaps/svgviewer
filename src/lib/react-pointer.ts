@@ -1,4 +1,3 @@
-//import { createBrowserInspector } from '@statelyai/inspect'
 import { useMachine, useSelector } from '@xstate/react'
 import { RefObject, useCallback, useEffect } from 'react'
 import { config } from './config'
@@ -36,8 +35,6 @@ const usePointerKey = (send: PointerSend) => {
 const selectLayout = (pointer: PointerState) => pointer.context.layout
 const selectFocus = (pointer: PointerState) => pointer.context.focus
 
-//const inspector = createBrowserInspector()
-
 export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
   const body = useWindowResize()
 
@@ -45,18 +42,6 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
     input: {
       containerRef,
       layout: makeLayout(configLayout(config.origViewBox, body)),
-    },
-    //inspect: inspector.inspect,
-    inspect: (ev) => {
-      if (ev.type === '@xstate.event') {
-        if (ev.event.type.match(/^.*(TOUCH|DRAG).*$/)) {
-          //console.log('[event]', ev)
-        }
-        //console.log('[event]', ev)
-      }
-      if (ev.type === '@xstate.action') {
-        //console.log('[action]', ev)
-      }
     },
   })
 
@@ -109,16 +94,16 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
   }, [containerRef, send])
 
   useEffect(() => {
-    if (pointer.matches({ expander: 'expanding' })) {
+    if (pointer.matches({ Expander: 'Expanding' })) {
       pointerSend({ type: 'EXPAND.EXPANDED' })
     }
-    if (pointer.matches({ expander: 'expanded' })) {
+    if (pointer.matches({ Expander: 'Expanded' })) {
       pointerSend({ type: 'EXPAND.RENDERED' })
     }
-    if (pointer.matches({ reflector: 'reflecting' })) {
+    if (pointer.matches({ Reflector: 'Reflecting' })) {
       pointerSend({ type: 'REFLECT.REFLECTED' })
     }
-    if (pointer.matches({ reflector: 'reflected' })) {
+    if (pointer.matches({ Reflector: 'Reflected' })) {
       pointerSend({ type: 'REFLECT.RENDERED' })
     }
   }, [pointer, pointerSend])

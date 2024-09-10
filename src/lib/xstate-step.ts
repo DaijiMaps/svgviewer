@@ -113,7 +113,7 @@ export const stepMachine = setup({
   },
 }).createMachine({
   id: 'step',
-  initial: 'idle',
+  initial: 'Idle',
   context: ({ input: { parent, cb, alpha, limit, maxCount } }) => ({
     parent,
     cb,
@@ -131,7 +131,7 @@ export const stepMachine = setup({
     },
   ],
   states: {
-    idle: {
+    Idle: {
       on: {
         'STEP.START': {
           actions: [
@@ -141,11 +141,11 @@ export const stepMachine = setup({
             },
             'startTick',
           ],
-          target: 'arriving',
+          target: 'Arriving',
         },
       },
     },
-    arriving: {
+    Arriving: {
       on: {
         'STEP.START': {
           actions: {
@@ -157,34 +157,34 @@ export const stepMachine = setup({
           {
             guard: 'isOutcounted',
             actions: 'callCbQ',
-            target: 'outcounted',
+            target: 'OutCounted',
           },
           {
             guard: 'isClose',
             actions: 'callCbQ',
-            target: 'arrived',
+            target: 'Arrived',
           },
           {
             actions: ['nextStep', 'callCbP'],
           },
         ],
         'STEP.STOP': {
-          target: 'stopped',
+          target: 'Stopped',
         },
       },
     },
-    arrived: {
-      always: 'done',
+    Arrived: {
+      always: 'Done',
     },
-    stopped: {
-      always: 'done',
+    Stopped: {
+      always: 'Done',
     },
-    outcounted: {
-      always: 'done',
+    OutCounted: {
+      always: 'Done',
     },
-    done: {
+    Done: {
       entry: ['stopTick', 'sendStepDone', 'resetStep'],
-      always: 'idle',
+      always: 'Idle',
     },
   },
 })

@@ -65,7 +65,7 @@ export const dragMachine = setup({
   },
 }).createMachine({
   id: 'drag',
-  initial: 'idle',
+  initial: 'Idle',
   context: ({ input: { parent, ref } }) => ({
     parent,
     ref,
@@ -81,7 +81,7 @@ export const dragMachine = setup({
     },
   ],
   states: {
-    idle: {
+    Idle: {
       on: {
         SYNC: {
           actions: [
@@ -101,11 +101,11 @@ export const dragMachine = setup({
               params: ({ event: { P, Q } }) => ({ P, Q }),
             },
           ],
-          target: 'busy',
+          target: 'Busy',
         },
       },
     },
-    busy: {
+    Busy: {
       on: {
         SLIDE: {
           actions: {
@@ -115,7 +115,7 @@ export const dragMachine = setup({
         },
         'STEP.DONE': {
           actions: 'notifySlideDone',
-          target: 'idle',
+          target: 'Idle',
         },
         CANCEL: {
           actions: [
@@ -128,7 +128,7 @@ export const dragMachine = setup({
             },
             'stopStep',
           ],
-          target: 'idle',
+          target: 'Idle',
         },
       },
     },

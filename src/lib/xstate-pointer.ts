@@ -167,35 +167,35 @@ export const pointerMachine = setup({
       return context.touches.zoom !== null
     },
     idle: and([
-      stateIn({ pointer: 'idle' }),
-      stateIn({ dragger: 'inactive' }),
-      stateIn({ slider: { handler: 'inactive' } }),
-      stateIn({ animator: 'inactive' }),
+      stateIn({ Pointer: 'Idle' }),
+      stateIn({ Dragger: 'Inactive' }),
+      stateIn({ Slider: { Handler: 'Inactive' } }),
+      stateIn({ Animator: 'Inactive' }),
     ]),
     dragging: and([
-      stateIn({ pointer: 'dragging' }),
-      stateIn({ dragger: { active: 'sliding' } }),
-      stateIn({ slider: { handler: 'inactive' } }),
-      stateIn({ animator: 'inactive' }),
+      stateIn({ Pointer: 'Dragging' }),
+      stateIn({ Dragger: { Active: 'Sliding' } }),
+      stateIn({ Slider: { Handler: 'Inactive' } }),
+      stateIn({ Animator: 'Inactive' }),
     ]),
     touching: and([
-      stateIn({ pointer: 'touching' }),
-      stateIn({ dragger: 'inactive' }),
-      stateIn({ slider: { handler: 'inactive' } }),
-      stateIn({ animator: 'inactive' }),
+      stateIn({ Pointer: 'Touching' }),
+      stateIn({ Dragger: 'Inactive' }),
+      stateIn({ Slider: { Handler: 'Inactive' } }),
+      stateIn({ Animator: 'Inactive' }),
     ]),
     sliding: and([
-      stateIn({ pointer: 'dragging' }),
-      stateIn({ dragger: { active: 'sliding' } }),
-      stateIn({ slider: { handler: 'active' } }),
-      stateIn({ animator: 'inactive' }),
+      stateIn({ Pointer: 'Dragging' }),
+      stateIn({ Dragger: { Active: 'Sliding' } }),
+      stateIn({ Slider: { Handler: 'Active' } }),
+      stateIn({ Animator: 'Inactive' }),
     ]),
     slidingDragBusy: and([
-      stateIn({ pointer: 'dragging' }),
-      stateIn({ dragger: { active: 'sliding' } }),
-      stateIn({ slider: { handler: 'active' } }),
-      stateIn({ slider: { drag: 'busy' } }),
-      stateIn({ animator: 'inactive' }),
+      stateIn({ Pointer: 'Dragging' }),
+      stateIn({ Dragger: { Active: 'Sliding' } }),
+      stateIn({ Slider: { Handler: 'Active' } }),
+      stateIn({ Slider: { Drag: 'Busy' } }),
+      stateIn({ Animator: 'Inactive' }),
     ]),
   },
   actions: {
@@ -355,10 +355,10 @@ export const pointerMachine = setup({
   ],
   type: 'parallel',
   states: {
-    config: {
-      initial: 'idle',
+    Config: {
+      initial: 'Idle',
       states: {
-        idle: {
+        Idle: {
           on: {
             LAYOUT: {
               actions: {
@@ -370,15 +370,15 @@ export const pointerMachine = setup({
         },
       },
     },
-    pointer: {
-      initial: 'idle',
+    Pointer: {
+      initial: 'Idle',
       states: {
-        idle: {
+        Idle: {
           on: {
             'KEY.DOWN': [
               {
                 guard: not('idle'),
-                target: 'idle',
+                target: 'Idle',
               },
               {
                 guard: {
@@ -392,7 +392,7 @@ export const pointerMachine = setup({
                     params: ({ event }) => ({ ev: event.ev, relative: 500 }),
                   },
                 ],
-                target: 'moving',
+                target: 'Moving',
               },
             ],
             'KEY.UP': [
@@ -415,11 +415,11 @@ export const pointerMachine = setup({
                   type: 'shouldExpand',
                   params: ({ event }) => ({ ev: event.ev }),
                 },
-                target: 'expanding',
+                target: 'Expanding',
               },
               {
                 guard: not('idle'),
-                target: 'idle',
+                target: 'Idle',
               },
               {
                 guard: {
@@ -430,7 +430,7 @@ export const pointerMachine = setup({
                   type: 'zoomKey',
                   params: ({ event }) => ({ ev: event.ev }),
                 },
-                target: 'zooming',
+                target: 'Zooming',
               },
             ],
             CLICK: {
@@ -448,7 +448,7 @@ export const pointerMachine = setup({
                   params: ({ event }) => ({ ev: event.ev }),
                 },
               ],
-              target: 'zooming',
+              target: 'Zooming',
             },
             'POINTER.DOWN': {
               actions: {
@@ -458,120 +458,120 @@ export const pointerMachine = setup({
             },
             DRAG: {
               guard: 'idle',
-              target: 'dragging',
+              target: 'Dragging',
             },
             TOUCH: {
               guard: 'idle',
-              target: 'touching',
+              target: 'Touching',
             },
           },
         },
-        moving: {
+        Moving: {
           entry: raise({ type: 'ANIMATION.MOVE' }),
           on: {
             'ANIMATION.DONE': {
-              target: 'idle',
+              target: 'Idle',
             },
           },
         },
-        zooming: {
+        Zooming: {
           entry: raise({ type: 'ANIMATION.ZOOM' }),
           on: {
             'ANIMATION.DONE': {
-              target: 'idle',
+              target: 'Idle',
             },
           },
         },
-        expanding: {
+        Expanding: {
           entry: raise({ type: 'EXPAND' }),
           on: {
             'EXPAND.DONE': {
-              target: 'idle',
+              target: 'Idle',
             },
           },
         },
-        dragging: {
+        Dragging: {
           on: {
-            TOUCH: { target: 'draggingToTouching' },
-            'DRAG.DONE': { target: 'idle' },
+            TOUCH: { target: 'DraggingToTouching' },
+            'DRAG.DONE': { target: 'Idle' },
           },
         },
-        draggingToTouching: {
+        DraggingToTouching: {
           on: {
             'DRAG.DONE': {
-              target: 'touching',
+              target: 'Touching',
             },
           },
         },
-        touching: {
+        Touching: {
           on: {
-            'ANIMATION.ZOOM': { target: 'zooming' },
-            'TOUCH.DONE': { target: 'idle' },
+            'ANIMATION.ZOOM': { target: 'Zooming' },
+            'TOUCH.DONE': { target: 'Idle' },
           },
         },
       },
     },
-    dragger: {
-      initial: 'inactive',
+    Dragger: {
+      initial: 'Inactive',
       states: {
-        inactive: {
+        Inactive: {
           on: {
             DRAG: {
               guard: 'idle',
-              target: 'active',
+              target: 'Active',
             },
           },
         },
-        active: {
-          initial: 'expanding',
-          onDone: 'inactive',
+        Active: {
+          initial: 'Expanding',
+          onDone: 'Inactive',
           states: {
-            expanding: {
+            Expanding: {
               entry: raise({ type: 'EXPAND', n: 3 }),
               on: {
                 'EXPAND.DONE': {
-                  target: 'sliding',
+                  target: 'Sliding',
                 },
               },
             },
-            sliding: {
+            Sliding: {
               entry: raise({ type: 'SLIDE' }),
               on: {
                 'SLIDE.DONE': {
-                  target: 'reflecting',
+                  target: 'Reflecting',
                 },
               },
             },
-            reflecting: {
+            Reflecting: {
               entry: raise({ type: 'REFLECT' }),
               on: {
                 'REFLECT.DONE': {
-                  target: 'done',
+                  target: 'Done',
                 },
               },
             },
-            done: {
+            Done: {
               type: 'final',
             },
           },
         },
       },
     },
-    slider: {
+    Slider: {
       type: 'parallel',
       states: {
-        handler: {
-          initial: 'inactive',
+        Handler: {
+          initial: 'Inactive',
           states: {
-            inactive: {
+            Inactive: {
               on: {
                 SLIDE: {
                   guard: 'dragging',
-                  target: 'active',
+                  target: 'Active',
                 },
               },
             },
-            active: {
+            Active: {
               entry: 'dragStart',
               on: {
                 'POINTER.MOVE': [
@@ -594,73 +594,73 @@ export const pointerMachine = setup({
                 'SLIDE.DRAG.DONE': {
                   guard: not('slidingDragBusy'),
                   actions: 'dragEnd',
-                  target: 'active',
+                  target: 'Active',
                 },
                 'POINTER.UP': [
                   {
                     guard: 'slidingDragBusy',
-                    target: 'waiting',
+                    target: 'Waiting',
                   },
                   {
-                    target: 'done',
+                    target: 'Done',
                   },
                 ],
                 'DRAG.CANCEL': [
                   {
                     guard: 'slidingDragBusy',
-                    target: 'waiting',
+                    target: 'Waiting',
                   },
                   {
-                    target: 'done',
+                    target: 'Done',
                   },
                 ],
               },
             },
-            waiting: {
+            Waiting: {
               on: {
                 'SLIDE.DRAG.DONE': {
                   guard: not('slidingDragBusy'),
                   actions: 'dragEnd',
-                  target: 'done',
+                  target: 'Done',
                 },
               },
             },
-            done: {
+            Done: {
               guard: not('slidingDragBusy'),
               entry: raise({ type: 'SLIDE.DONE' }),
-              always: 'inactive',
+              always: 'Inactive',
             },
           },
         },
-        drag: {
-          initial: 'idle',
+        Drag: {
+          initial: 'Idle',
           states: {
-            idle: {
+            Idle: {
               on: {
                 'SLIDE.DRAG.SLIDE': {
-                  target: 'busy',
+                  target: 'Busy',
                 },
               },
             },
-            busy: {
+            Busy: {
               on: {
                 'SLIDE.DRAG.SLIDED': {
-                  target: 'done',
+                  target: 'Done',
                 },
               },
             },
-            done: {
+            Done: {
               entry: raise({ type: 'SLIDE.DRAG.DONE' }),
-              always: 'idle',
+              always: 'Idle',
             },
           },
         },
       },
     },
-    expander: {
-      initial: 'unexpanded',
+    Expander: {
+      initial: 'Unexpanded',
       states: {
-        unexpanded: {
+        Unexpanded: {
           on: {
             EXPAND: {
               actions: {
@@ -669,42 +669,42 @@ export const pointerMachine = setup({
                   n: n !== undefined ? n : expand === 1 ? 3 : 1,
                 }),
               },
-              target: 'expanding',
+              target: 'Expanding',
             },
           },
         },
-        expanding: {
+        Expanding: {
           on: {
             'EXPAND.EXPANDED': {
-              target: 'expanded',
+              target: 'Expanded',
             },
           },
         },
-        expanded: {
+        Expanded: {
           on: {
             'EXPAND.RENDERED': {
               actions: ['syncScroll'],
-              target: 'done',
+              target: 'Done',
             },
           },
         },
-        done: {
+        Done: {
           entry: raise({ type: 'EXPAND.DONE' }),
-          always: 'unexpanded',
+          always: 'Unexpanded',
         },
       },
     },
-    reflector: {
-      initial: 'expanded',
+    Reflector: {
+      initial: 'Expanded',
       states: {
-        expanded: {
+        Expanded: {
           on: {
             REFLECT: {
-              target: 'reflecting',
+              target: 'Reflecting',
             },
           },
         },
-        reflecting: {
+        Reflecting: {
           on: {
             'REFLECT.REFLECTED': {
               actions: [
@@ -712,95 +712,95 @@ export const pointerMachine = setup({
                 'resetScroll',
                 { type: 'expand', params: { n: 1 } },
               ],
-              target: 'reflected',
+              target: 'Reflected',
             },
           },
         },
-        reflected: {
+        Reflected: {
           on: {
             'REFLECT.RENDERED': {
-              target: 'done',
+              target: 'Done',
             },
           },
         },
-        done: {
+        Done: {
           entry: raise({ type: 'REFLECT.DONE' }),
-          always: 'expanded',
+          always: 'Expanded',
         },
       },
     },
-    animator: {
-      initial: 'inactive',
+    Animator: {
+      initial: 'Inactive',
       states: {
-        inactive: {
+        Inactive: {
           on: {
             'ANIMATION.MOVE': {
-              target: 'moving',
+              target: 'Moving',
             },
             'ANIMATION.ZOOM': {
-              target: 'zooming',
+              target: 'Zooming',
             },
           },
         },
-        moving: {
+        Moving: {
           on: {
             'ANIMATION.END': {
               actions: ['zoomEnd', 'recenterLayout', 'resetScroll'],
-              target: 'done',
+              target: 'Done',
             },
           },
         },
-        zooming: {
+        Zooming: {
           on: {
             'ANIMATION.END': {
               actions: ['zoomEnd'],
-              target: 'done',
+              target: 'Done',
             },
           },
         },
-        done: {
+        Done: {
           entry: raise({ type: 'ANIMATION.DONE' }),
-          always: 'inactive',
+          always: 'Inactive',
         },
       },
     },
-    pointerMonitor: {
-      initial: 'idle',
+    PointerMonitor: {
+      initial: 'Idle',
       states: {
-        idle: {
+        Idle: {
           on: {
             'POINTER.DOWN': {
-              target: 'busy',
+              target: 'Busy',
             },
           },
         },
-        busy: {
-          initial: 'idle',
-          onDone: 'idle',
+        Busy: {
+          initial: 'Idle',
+          onDone: 'Idle',
           states: {
-            idle: {
+            Idle: {
               on: {
                 'POINTER.MOVE': {
-                  target: 'busy',
+                  target: 'Busy',
                 },
                 'POINTER.UP': {
                   actions: raise({ type: 'DRAG.DONE' }),
-                  target: 'done',
+                  target: 'Done',
                 },
               },
             },
-            busy: {
+            Busy: {
               entry: raise({ type: 'DRAG' }),
               on: {
                 'POINTER.UP': {
-                  target: 'done',
+                  target: 'Done',
                 },
                 'DRAG.CANCEL': {
-                  target: 'done',
+                  target: 'Done',
                 },
               },
             },
-            done: {
+            Done: {
               entry: raise({ type: 'DRAG.DONE' }),
               type: 'final',
             },
@@ -808,10 +808,10 @@ export const pointerMachine = setup({
         },
       },
     },
-    touchHandler: {
-      initial: 'active',
+    TouchHandler: {
+      initial: 'Active',
       states: {
-        active: {
+        Active: {
           on: {
             'TOUCH.START': {
               actions: [
@@ -820,79 +820,79 @@ export const pointerMachine = setup({
                   params: ({ event }) => ({ ev: event.ev }),
                 },
               ],
-              target: 'startDone',
+              target: 'StartDone',
             },
             'TOUCH.MOVE': {
               actions: {
                 type: 'moveTouches',
                 params: ({ event }) => ({ ev: event.ev }),
               },
-              target: 'moveDone',
+              target: 'MoveDone',
             },
             'TOUCH.END': {
               actions: {
                 type: 'endTouches',
                 params: ({ event }) => ({ ev: event.ev }),
               },
-              target: 'endDone',
+              target: 'EndDone',
             },
           },
         },
-        startDone: {
+        StartDone: {
           entry: [raise({ type: 'TOUCH.START.DONE' })],
-          always: 'active',
+          always: 'Active',
         },
-        moveDone: {
+        MoveDone: {
           entry: raise({ type: 'TOUCH.MOVE.DONE' }),
-          always: 'active',
+          always: 'Active',
         },
-        endDone: {
+        EndDone: {
           entry: raise({ type: 'TOUCH.END.DONE' }),
-          always: 'active',
+          always: 'Active',
         },
       },
     },
-    touchMonitor: {
-      initial: 'inactive',
+    TouchMonitor: {
+      initial: 'Inactive',
       states: {
-        inactive: {
+        Inactive: {
           on: {
             'TOUCH.MOVE.DONE': [
               {
                 guard: and([or(['idle', 'sliding']), 'isMultiTouch']),
-                target: 'active',
+                target: 'Active',
               },
             ],
           },
         },
-        active: {
+        Active: {
           entry: raise({ type: 'TOUCH' }),
           on: {
             'TOUCH.MOVE.DONE': [
               {
                 guard: and(['touching', 'isZooming']),
                 actions: ['zoomTouches', 'resetTouches'],
-                target: 'zooming',
+                target: 'Zooming',
               },
             ],
             'TOUCH.END.DONE': [
               {
                 guard: and(['isMultiTouchEnding']),
                 actions: ['resetTouches'],
-                target: 'done',
+                target: 'Done',
               },
             ],
           },
         },
-        done: {
+        Done: {
           entry: raise({ type: 'TOUCH.DONE' }),
-          always: 'inactive',
+          always: 'Inactive',
         },
-        zooming: {
+        Zooming: {
           entry: raise({ type: 'ANIMATION.ZOOM' }),
           on: {
             'ANIMATION.DONE': {
-              target: 'inactive',
+              target: 'Inactive',
             },
           },
         },
