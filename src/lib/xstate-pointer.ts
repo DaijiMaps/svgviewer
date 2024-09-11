@@ -18,6 +18,7 @@ import {
 } from './animation'
 import { boxCenter } from './box/prefixed'
 import { Drag, dragMove, dragStart } from './drag'
+import { keyToDir, keyToZoom } from './key'
 import {
   expandLayoutCenter,
   Layout,
@@ -39,17 +40,6 @@ import { VecVec as Vec, vecScale, vecVec } from './vec/prefixed'
 import { scrollMachine } from './xstate-scroll'
 
 const DIST_LIMIT = 10
-
-function keyToDir(key: string): Vec {
-  return {
-    x: key === 'h' ? 1 : key === 'l' ? -1 : 0,
-    y: key === 'k' ? 1 : key === 'j' ? -1 : 0,
-  }
-}
-
-function keyToZoom(key: string): number {
-  return '=+iI'.indexOf(key) >= 0 ? 1 : '-_oO'.indexOf(key) >= 0 ? -1 : 0
-}
 
 //// PointerContext
 //// PointerDOMEvent
@@ -217,23 +207,21 @@ export const pointerMachine = setup({
       })
     },
     slideScroll: ({ context: { layout, drag }, system }): void => {
-      if (drag === null) {
-        return
+      if (drag !== null) {
+        system.get('scroll1').send({
+          type: 'SLIDE',
+          P: layout.container,
+          Q: drag.move,
+        })
       }
-      system.get('scroll1').send({
-        type: 'SLIDE',
-        P: layout.container,
-        Q: drag.move,
-      })
     },
     resetScroll: ({ context: { drag }, system }): void => {
-      if (drag === null) {
-        return
+      if (drag !== null) {
+        system.get('scroll1').send({
+          type: 'SYNC',
+          pos: drag.start,
+        })
       }
-      system.get('scroll1').send({
-        type: 'SYNC',
-        pos: drag.start,
-      })
     },
     zoomKey: assign({
       z: (_, { ev }: { ev: KeyboardEvent }): number => keyToZoom(ev.key),
@@ -624,7 +612,6 @@ export const pointerMachine = setup({
               },
             },
             Done: {
-              guard: not('slidingDragBusy'),
               entry: raise({ type: 'SLIDE.DONE' }),
               always: 'Inactive',
             },
