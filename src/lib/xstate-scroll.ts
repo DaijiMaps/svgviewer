@@ -57,7 +57,7 @@ export const scrollMachine = setup({
     ),
     notifySlideDone: sendTo(
       ({ context }) => context.parent,
-      () => ({ type: 'SLIDE.DRAG.SLIDED' })
+      () => ({ type: 'SCROLL.SLIDE.DONE' })
     ),
   },
   actors: {

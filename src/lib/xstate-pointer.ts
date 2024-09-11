@@ -78,7 +78,7 @@ type PointerExternalEvent =
   | { type: 'LAYOUT'; config: LayoutConfig }
   | { type: 'RENDERED' }
   | { type: 'ANIMATION.END' }
-  | { type: 'SLIDE.DRAG.SLIDED' }
+  | { type: 'SCROLL.SLIDE.DONE' }
 
 type PointerInternalEvent =
   | { type: 'ANIMATION' }
@@ -174,32 +174,32 @@ export const pointerMachine = setup({
     idle: and([
       stateIn({ Pointer: 'Idle' }),
       stateIn({ Dragger: 'Inactive' }),
-      stateIn({ Slider: { Handler: 'Inactive' } }),
+      stateIn({ Slider: { PointerHandler: 'Inactive' } }),
       stateIn({ Animator: 'Inactive' }),
     ]),
     dragging: and([
       stateIn({ Pointer: 'Dragging' }),
       stateIn({ Dragger: 'Sliding' }),
-      stateIn({ Slider: { Handler: 'Inactive' } }),
+      stateIn({ Slider: { PointerHandler: 'Inactive' } }),
       stateIn({ Animator: 'Inactive' }),
     ]),
     touching: and([
       stateIn({ Pointer: 'Touching' }),
       stateIn({ Dragger: 'Inactive' }),
-      stateIn({ Slider: { Handler: 'Inactive' } }),
+      stateIn({ Slider: { PointerHandler: 'Inactive' } }),
       stateIn({ Animator: 'Inactive' }),
     ]),
     sliding: and([
       stateIn({ Pointer: 'Dragging' }),
       stateIn({ Dragger: 'Sliding' }),
-      stateIn({ Slider: { Handler: 'Active' } }),
+      stateIn({ Slider: { PointerHandler: 'Active' } }),
       stateIn({ Animator: 'Inactive' }),
     ]),
     slidingDragBusy: and([
       stateIn({ Pointer: 'Dragging' }),
       stateIn({ Dragger: 'Sliding' }),
-      stateIn({ Slider: { Handler: 'Active' } }),
-      stateIn({ Slider: { Drag: 'Busy' } }),
+      stateIn({ Slider: { PointerHandler: 'Active' } }),
+      stateIn({ Slider: { ScrollHandler: 'Busy' } }),
       stateIn({ Animator: 'Inactive' }),
     ]),
   },
@@ -560,7 +560,7 @@ export const pointerMachine = setup({
     Slider: {
       type: 'parallel',
       states: {
-        Handler: {
+        PointerHandler: {
           initial: 'Inactive',
           states: {
             Inactive: {
@@ -630,7 +630,7 @@ export const pointerMachine = setup({
             },
           },
         },
-        Drag: {
+        ScrollHandler: {
           initial: 'Idle',
           states: {
             Idle: {
@@ -642,14 +642,11 @@ export const pointerMachine = setup({
             },
             Busy: {
               on: {
-                'SLIDE.DRAG.SLIDED': {
-                  target: 'Done',
+                'SCROLL.SLIDE.DONE': {
+                  actions: raise({ type: 'SLIDE.DRAG.DONE' }),
+                  target: 'Idle',
                 },
               },
-            },
-            Done: {
-              entry: raise({ type: 'SLIDE.DRAG.DONE' }),
-              always: 'Idle',
             },
           },
         },
@@ -713,13 +710,10 @@ export const pointerMachine = setup({
           tags: ['rendering'],
           on: {
             RENDERED: {
-              target: 'Done',
+              actions: raise({ type: 'UNEXPAND.DONE' }),
+              target: 'Unexpanded',
             },
           },
-        },
-        Done: {
-          entry: raise({ type: 'UNEXPAND.DONE' }),
-          always: 'Unexpanded',
         },
       },
     },
@@ -850,8 +844,8 @@ export const pointerMachine = setup({
             },
             'TOUCH.END.DONE': {
               guard: and(['isMultiTouchEnding']),
-              actions: 'resetTouches',
-              target: 'Done',
+              actions: ['resetTouches', raise({ type: 'TOUCH.DONE' })],
+              target: 'Inactive',
             },
           },
         },
@@ -862,10 +856,6 @@ export const pointerMachine = setup({
               target: 'Inactive',
             },
           },
-        },
-        Done: {
-          entry: raise({ type: 'TOUCH.DONE' }),
-          always: 'Inactive',
         },
       },
     },

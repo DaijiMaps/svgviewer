@@ -20,8 +20,8 @@ export const Debug = (props: DebugProps) => {
         {[
           ['Pointer', pointer.value.Pointer],
           ['Dragger', pointer.value.Dragger],
-          ['Slider.Handler', pointer.value.Slider.Handler],
-          ['Slider.Drag', pointer.value.Slider.Drag],
+          ['Slider.PointerHandler', pointer.value.Slider.PointerHandler],
+          ['Slider.ScrollHandler', pointer.value.Slider.ScrollHandler],
           ['Expander', pointer.value.Expander],
           ['Animator', pointer.value.Animator],
           ['PointerMonitor', pointer.value.PointerMonitor],
