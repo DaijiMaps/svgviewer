@@ -21,8 +21,8 @@ export const Viewer = (props: PropsWithChildren) => {
         _pointerSend={pointerSend}
       >
         <Svg
-          width={layout.container.width}
-          height={layout.container.height}
+          width={layout.scroll.width}
+          height={layout.scroll.height}
           onAnimationEnd={() => pointerSend({ type: 'ANIMATION.END' })}
           _viewBox={layout.svg}
         >

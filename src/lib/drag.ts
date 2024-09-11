@@ -8,11 +8,11 @@ export type Drag = ReadonlyDeep<{
   move: Box
 }>
 
-export const dragStart = (container: Box, focus: Vec): Drag => {
+export const dragStart = (scroll: Box, focus: Vec): Drag => {
   return {
     focus: vecCopy(focus),
-    start: boxCopy(container),
-    move: boxCopy(container),
+    start: boxCopy(scroll),
+    move: boxCopy(scroll),
   }
 }
 
@@ -28,10 +28,10 @@ export const dragMove = (drag: Drag, p: Vec): Drag => {
 
 // XXX practically this is not needed if dragStart() is always called
 // XXX mainly for test (see "recenter 3")
-export const dragReset = (container: Box): Drag => {
+export const dragReset = (scroll: Box): Drag => {
   return {
-    focus: boxCenter(container),
-    start: boxCopy(container),
-    move: boxCopy(container),
+    focus: boxCenter(scroll),
+    start: boxCopy(scroll),
+    move: boxCopy(scroll),
   }
 }

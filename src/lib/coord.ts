@@ -12,11 +12,11 @@ export interface LayoutCoord {
   // C: client coord
   // S: svg coord
 
-  // body (C) size
-  body: Box
-
-  // container (C) -> svg (C)
+  // container (C) size
   container: Box
+
+  // scroll (C) -> svg (C)
+  scroll: Box
 
   // svg (C) -> svg viewbox (C)
   svgOffset: Move
@@ -29,26 +29,26 @@ export interface LayoutCoord {
 }
 
 export const makeCoord = ({
-  body,
+  container,
   svg,
   svgOffset,
   svgScale,
 }: Readonly<LayoutConfig>): LayoutCoord => {
   return {
-    body: boxCopy(body),
-    container: boxCopy(body),
+    container: boxCopy(container),
+    scroll: boxCopy(container),
     svgOffset: invMove(svgOffset),
     svgScale,
     svg: boxCopy(svg),
   }
 }
 
-export const toMatrixOuter = ({ container }: Readonly<LayoutCoord>): Matrix => {
-  return fromTransform(invMove(container))
+export const toMatrixOuter = ({ scroll }: Readonly<LayoutCoord>): Matrix => {
+  return fromTransform(invMove(scroll))
 }
 
 export const toMatrixSvg = ({
-  container,
+  scroll,
   svgOffset,
   svgScale,
   svg,
@@ -57,6 +57,6 @@ export const toMatrixSvg = ({
     fromTransform(svg),
     fromTransform(svgScale),
     fromTransform(svgOffset),
-    fromTransform(invMove(container)),
+    fromTransform(invMove(scroll)),
   ].reduce((a, b) => matrixMultiply(a, b))
 }

@@ -42,12 +42,12 @@ export const Debug = (props: DebugProps) => {
             <li>container.scrollTop: {showNumber(container.scrollTop)}</li>
           </>
         )}
-        <li>layout.config.body: {showBox(layout.config.body)}</li>
+        <li>layout.config.container: {showBox(layout.config.container)}</li>
         <li>layout.config.svg: {showBox(layout.config.svg)}</li>
         <li>layout.config.svgOffset: {showPoint(layout.config.svgOffset)}</li>
         <li>layout.config.svgScale: {showNumber(layout.config.svgScale.s)}</li>
         <li>layout.config.fontSize: {showNumber(layout.config.fontSize)}</li>
-        <li>layout.container: {showBox(layout.container)}</li>
+        <li>layout.scroll: {showBox(layout.scroll)}</li>
         <li>layout.svgOffset: {showPoint(layout.svgOffset)}</li>
         <li>layout.svgScale: {showNumber(layout.svgScale.s)}</li>
         <li>layout.svg: {showBox(layout.svg)}</li>

@@ -28,7 +28,7 @@ export function moveStyle(pointer: Readonly<PointerState>) {
     return ''
   }
 
-  const d = vecSub(ifNullOr(animation.move, layout.container), layout.container)
+  const d = vecSub(ifNullOr(animation.move, layout.scroll), layout.scroll)
 
   const moveStyle =
     d.x === 0 && d.y === 0

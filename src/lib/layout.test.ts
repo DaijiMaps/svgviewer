@@ -15,12 +15,12 @@ import {
 import { transformPoint, transformScale } from './transform'
 import { vecVec } from './vec/prefixed'
 
-const body: Box = { x: 0, y: 0, width: 1200, height: 1000 }
+const container: Box = { x: 0, y: 0, width: 1200, height: 1000 }
 const origViewBox: Box = { x: 0, y: 0, width: 100, height: 100 }
 
-const config = configLayout(16, origViewBox, body)
+const config = configLayout(16, origViewBox, container)
 const layout = makeLayout(config)
-const focus = boxCenter(body)
+const focus = boxCenter(container)
 
 test('layout config', () => {
   // svg scaled to (1000, 1000)
@@ -60,7 +60,7 @@ test('expand 2', () => {
   const l1 = pipe(layout, (l) => expandLayoutCenter(l, 2))
   const l2 = pipe(l1, (l) => expandLayoutCenter(l, 1 / 2))
 
-  expect(l1.container).toStrictEqual({
+  expect(l1.scroll).toStrictEqual({
     x: -600,
     y: -500,
     width: 2400,
@@ -72,7 +72,7 @@ test('expand 2', () => {
     width: 200,
     height: 200,
   })
-  expect(l2.container).toStrictEqual({
+  expect(l2.scroll).toStrictEqual({
     x: 0,
     y: 0,
     width: 1200,
@@ -90,21 +90,24 @@ test('expand 2', () => {
 test('boxScale', () => {
   const s = 2
 
-  const o = vecVec(layout.config.body.width / 2, layout.config.body.height / 2)
+  const o = vecVec(
+    layout.config.container.width / 2,
+    layout.config.container.height / 2
+  )
 
   const opsvg = transformPoint(toMatrixSvg(layout), o)
 
   expect(o.x).toBe(600)
 
-  const container = boxScaleAt(layout.container, s, o.x, o.y)
+  const scroll = boxScaleAt(layout.scroll, s, o.x, o.y)
   const svg = boxScaleAt(layout.svg, s, opsvg.x, opsvg.y)
 
-  expect(container.x).toBe(-600)
+  expect(scroll.x).toBe(-600)
   expect(svg.x).toBe(-50)
 
   const coord = {
     ...layout,
-    container,
+    scroll,
     svgOffset: transformScale(layout.svgOffset, s),
     svg,
   }
@@ -119,7 +122,7 @@ test('boxScale', () => {
 })
 
 test('recenter 1', () => {
-  const d1 = dragStart(layout.container, vecVec(0, 0))
+  const d1 = dragStart(layout.scroll, vecVec(0, 0))
   const l1 = recenterLayout(layout, d1.start)
   expect(l1).toStrictEqual(layout)
 })
@@ -127,7 +130,7 @@ test('recenter 1', () => {
 test('recenter 2', () => {
   const l2 = pipe(
     layout,
-    (l) => dragStart(l.container, focus),
+    (l) => dragStart(l.scroll, focus),
     (d) => dragMove(d, vecVec(600, 500)),
     (d) => recenterLayout(layout, d.start)
   )
@@ -136,7 +139,7 @@ test('recenter 2', () => {
 
 test('recenter 3', () => {
   const l1 = expandLayout(layout, 2, focus)
-  const d1 = dragStart(l1.container, focus)
+  const d1 = dragStart(l1.scroll, focus)
   const d2 = dragMove(d1, vecVec(0, 0))
   const d3 = dragMove(d2, vecVec(600, 500))
   const l2 = moveLayout(l1, d3.move)
@@ -147,9 +150,9 @@ test('recenter 3', () => {
 
 test('recenter 4', () => {
   const focus = vecVec(0, 0)
-  const d1 = pipe(layout, (l) => dragStart(l.container, focus))
+  const d1 = pipe(layout, (l) => dragStart(l.scroll, focus))
   const ox1 = d1.start.x
-  const x1 = layout.container.x
+  const x1 = layout.scroll.x
   expect(ox1).toBe(0)
   expect(x1).toBe(0)
 
@@ -174,7 +177,7 @@ test('recenter 4', () => {
   expect(x3).toBe(1)
 
   const l4 = recenterLayout(l3, d3.start)
-  const d4 = dragReset(l4.container)
+  const d4 = dragReset(l4.scroll)
   const ox4 = d4.start.x
   const x4 = d4.move.x
   expect(ox4).toBe(0)
@@ -182,14 +185,14 @@ test('recenter 4', () => {
 })
 
 test('move + zoom', () => {
-  const d1 = dragStart(layout.container, focus)
+  const d1 = dragStart(layout.scroll, focus)
   const d2 = dragMove(d1, vecVec(0, 0))
   const l2 = recenterLayout(layout, d2.start)
   const a1 = animationZoom(l2, 1, focus)
   const l3 = animationEndLayout(l2, a1)
   const a2 = animationZoom(l3, -1, focus)
   const l4 = animationEndLayout(l3, a2)
-  const d5 = dragStart(l4.container, focus)
+  const d5 = dragStart(l4.scroll, focus)
   const a6 = animationMove(d5, vecVec(-1, 0))
   const l5 = animationEndLayout(l4, a6)
   const l6 = moveLayout(l5, d5.move)

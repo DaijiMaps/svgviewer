@@ -18,7 +18,7 @@ import { VecVec as Vec, vecScale, vecSub } from './vec/prefixed'
 
 export type LayoutConfig = ReadonlyDeep<{
   readonly fontSize: number
-  readonly body: Box
+  readonly container: Box
   readonly svg: Box
   readonly svgOffset: Move
   readonly svgScale: Scale
@@ -38,12 +38,12 @@ export function configLayout(
   svg: Box,
   origBody?: Box
 ): LayoutConfig {
-  const body: Box = origBody !== undefined ? origBody : getBodySize()
-  const [[x, y], s] = fit(body, svg)
+  const container: Box = origBody !== undefined ? origBody : getBodySize()
+  const [[x, y], s] = fit(container, svg)
 
   return {
     fontSize,
-    body,
+    container,
     svg,
     svgOffset: { x, y },
     svgScale: { s },
@@ -63,7 +63,7 @@ export function makeLayout(config: LayoutConfig): Layout {
 //// expandLayout
 
 export const expandLayoutCenter = (layout: Layout, expand: number): Layout => {
-  return expandLayout(layout, expand, boxCenter(layout.container))
+  return expandLayout(layout, expand, boxCenter(layout.scroll))
 }
 
 export const expandLayout = (layout: Layout, s: number, focus: Vec): Layout => {
@@ -71,7 +71,7 @@ export const expandLayout = (layout: Layout, s: number, focus: Vec): Layout => {
 
   return {
     ...layout,
-    container: boxScaleAt(layout.container, s, focus.x, focus.y),
+    scroll: boxScaleAt(layout.scroll, s, focus.x, focus.y),
     svgOffset: vecScale(layout.svgOffset, s),
     svg: boxScaleAt(layout.svg, s, o.x, o.y),
   }
@@ -84,7 +84,7 @@ export const expandLayout = (layout: Layout, s: number, focus: Vec): Layout => {
 export const moveLayout = (layout: Layout, move: Box): Layout => {
   return {
     ...layout,
-    container: boxCopy(move),
+    scroll: boxCopy(move),
   }
 }
 
@@ -97,12 +97,12 @@ export const zoomLayout = (layout: Layout, zoom: AnimationZoom): Layout => {
 }
 
 export const recenterLayout = (layout: Layout, start: Box): Layout => {
-  const d = vecSub(layout.container, start)
+  const d = vecSub(layout.scroll, start)
   const dsvg = vecScale(d, -layout.svgScale.s)
 
   return {
     ...layout,
-    container: boxCopy(start),
+    scroll: boxCopy(start),
     svg: boxMove(layout.svg, dsvg),
   }
 }

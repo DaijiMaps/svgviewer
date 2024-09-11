@@ -203,14 +203,14 @@ export const pointerMachine = setup({
     syncScroll: ({ context: { layout }, system }): void => {
       system.get('scroll1').send({
         type: 'SYNC',
-        pos: layout.container,
+        pos: layout.scroll,
       })
     },
     slideScroll: ({ context: { layout, drag }, system }): void => {
       if (drag !== null) {
         system.get('scroll1').send({
           type: 'SLIDE',
-          P: layout.container,
+          P: layout.scroll,
           Q: drag.move,
         })
       }
@@ -264,7 +264,7 @@ export const pointerMachine = setup({
     }),
     startDrag: assign({
       drag: ({ context: { layout, focus } }): Drag =>
-        dragStart(layout.container, focus),
+        dragStart(layout.scroll, focus),
     }),
     moveDrag: assign({
       drag: (
@@ -315,7 +315,7 @@ export const pointerMachine = setup({
   context: ({ input: { containerRef, layout } }) => ({
     containerRef,
     layout,
-    focus: boxCenter(layout.body),
+    focus: boxCenter(layout.container),
     expand: 1,
     z: 0,
     zoom: 0,
