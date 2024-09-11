@@ -4,7 +4,6 @@ import {
   and,
   assign,
   not,
-  or,
   raise,
   setup,
   StateFrom,
@@ -33,7 +32,6 @@ import {
   handleTouchStart,
   isMultiTouch,
   isMultiTouchEnding,
-  isNotMultiTouch,
   Touches,
 } from './touch'
 import { VecVec as Vec, vecScale, vecVec } from './vec/prefixed'
@@ -152,7 +150,6 @@ export const pointerMachine = setup({
     shouldMove: (_, { ev }: { ev: KeyboardEvent }) =>
       'hjkl'.indexOf(ev.key) >= 0,
     isMultiTouch: ({ context: { touches } }) => isMultiTouch(touches),
-    isNotMultiTouch: ({ context: { touches } }) => isNotMultiTouch(touches),
     isMultiTouchEnding: ({ context: { touches } }) =>
       isMultiTouchEnding(touches),
     isExpanded: ({ context }) => context.expand !== 1,
@@ -562,21 +559,34 @@ export const pointerMachine = setup({
             Active: {
               entry: 'startDrag',
               on: {
-                'POINTER.MOVE': {
-                  guard: and(['sliding', 'isNotMultiTouch']),
-                  actions: [
-                    {
-                      type: 'focus',
-                      params: ({ event }) => ({ ev: event.ev }),
-                    },
-                    {
-                      type: 'moveDrag',
-                      params: ({ event }) => ({ ev: event.ev }),
-                    },
-                    'slideScroll',
-                    raise({ type: 'SLIDE.DRAG.SLIDE' }),
-                  ],
-                },
+                'POINTER.MOVE': [
+                  // XXX protect move handling with isMultiTouch
+                  // XXX (checking context.touches directly/synchronously)
+                  // XXX checking state is too slow to block moves
+                  {
+                    guard: and(['isMultiTouch', 'slidingDragBusy']),
+                    target: 'Sliding',
+                  },
+                  {
+                    guard: and(['isMultiTouch']),
+                    target: 'Done',
+                  },
+                  {
+                    guard: and(['sliding']),
+                    actions: [
+                      {
+                        type: 'focus',
+                        params: ({ event }) => ({ ev: event.ev }),
+                      },
+                      {
+                        type: 'moveDrag',
+                        params: ({ event }) => ({ ev: event.ev }),
+                      },
+                      'slideScroll',
+                      raise({ type: 'SLIDE.DRAG.SLIDE' }),
+                    ],
+                  },
+                ],
                 'SLIDE.DRAG.DONE': {
                   guard: not('slidingDragBusy'),
                   actions: 'endMove',
@@ -816,7 +826,7 @@ export const pointerMachine = setup({
         Inactive: {
           on: {
             'TOUCH.MOVE.DONE': {
-              guard: and([or(['idle', 'sliding']), 'isMultiTouch']),
+              guard: and(['isMultiTouch']),
               target: 'Active',
             },
           },
