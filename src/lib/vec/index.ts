@@ -1,4 +1,5 @@
 import { add, addF } from './add'
+import { copy } from './copy'
 import { dist, qdist } from './dist'
 import { div, divF } from './div'
 import { interpolate, interpolateF } from './interpolate'
@@ -13,6 +14,7 @@ export type { Vec }
 export {
   add,
   addF,
+  copy,
   dist,
   div,
   divF,

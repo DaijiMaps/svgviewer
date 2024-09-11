@@ -36,7 +36,7 @@ import {
   Touches,
 } from './touch'
 import { VecVec as Vec, vecScale, vecVec } from './vec/prefixed'
-import { dragMachine } from './xstate-drag'
+import { scrollMachine } from './xstate-scroll'
 
 const DIST_LIMIT = 10
 
@@ -76,6 +76,7 @@ export type PointerContext = {
 
 type PointerMiscEvent =
   | { type: 'LAYOUT'; config: LayoutConfig }
+  | { type: 'RENDERED' }
   | { type: 'ANIMATION.MOVE' }
   | { type: 'ANIMATION.ZOOM' }
   | { type: 'ANIMATION.END' }
@@ -202,7 +203,7 @@ export const pointerMachine = setup({
       debug: ({ context }): boolean => !context.debug,
     }),
     syncScroll: ({ context: { layout }, system }): void => {
-      system.get('drag1').send({
+      system.get('scroll1').send({
         type: 'SYNC',
         pos: layout.container,
       })
@@ -211,7 +212,7 @@ export const pointerMachine = setup({
       if (drag === null) {
         return
       }
-      system.get('drag1').send({
+      system.get('scroll1').send({
         type: 'SLIDE',
         P: layout.container,
         Q: drag.move,
@@ -221,7 +222,7 @@ export const pointerMachine = setup({
       if (drag === null) {
         return
       }
-      system.get('drag1').send({
+      system.get('scroll1').send({
         type: 'SYNC',
         pos: drag.start,
       })
@@ -311,7 +312,7 @@ export const pointerMachine = setup({
     }),
   },
   actors: {
-    drag: dragMachine,
+    scroll: scrollMachine,
   },
 }).createMachine({
   id: 'pointer',
@@ -334,8 +335,8 @@ export const pointerMachine = setup({
   }),
   invoke: [
     {
-      src: 'drag',
-      systemId: 'drag1',
+      src: 'scroll',
+      systemId: 'scroll1',
       input: ({ context, self }) => ({
         parent: self,
         ref: context.containerRef,
@@ -684,15 +685,17 @@ export const pointerMachine = setup({
           },
         },
         Expanding: {
+          tags: ['rendering'],
           on: {
-            'EXPAND.EXPANDED': {
+            RENDERED: {
               target: 'ExpandRendering',
             },
           },
         },
         ExpandRendering: {
+          tags: ['rendering'],
           on: {
-            'EXPAND.RENDERED': {
+            RENDERED: {
               actions: 'syncScroll',
               target: 'Expanded',
             },
@@ -707,8 +710,9 @@ export const pointerMachine = setup({
           },
         },
         Unexpanding: {
+          tags: ['rendering'],
           on: {
-            'UNEXPAND.UNEXPANDED': {
+            RENDERED: {
               actions: [
                 'recenterLayout',
                 'resetScroll',
@@ -719,8 +723,9 @@ export const pointerMachine = setup({
           },
         },
         UnexpandRendering: {
+          tags: ['rendering'],
           on: {
-            'UNEXPAND.RENDERED': {
+            RENDERED: {
               target: 'Done',
             },
           },

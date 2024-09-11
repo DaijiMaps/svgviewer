@@ -100,17 +100,8 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
   }, [containerRef, send])
 
   useEffect(() => {
-    if (pointer.matches({ Expander: 'Expanding' })) {
-      pointerSend({ type: 'EXPAND.EXPANDED' })
-    }
-    if (pointer.matches({ Expander: 'ExpandRendering' })) {
-      pointerSend({ type: 'EXPAND.RENDERED' })
-    }
-    if (pointer.matches({ Expander: 'Unexpanding' })) {
-      pointerSend({ type: 'UNEXPAND.UNEXPANDED' })
-    }
-    if (pointer.matches({ Expander: 'UnexpandRendering' })) {
-      pointerSend({ type: 'UNEXPAND.RENDERED' })
+    if (pointer.hasTag('rendering')) {
+      pointerSend({ type: 'RENDERED' })
     }
   }, [pointer, pointerSend])
 

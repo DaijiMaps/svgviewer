@@ -4,45 +4,45 @@ import { BoxBox as Box } from './box/prefixed'
 import { syncScroll } from './scroll'
 import { stepMachine } from './xstate-step'
 
-export type DragInput = {
+export type ScrollInput = {
   parent: AnyActorRef
   ref: RefObject<HTMLDivElement>
 }
 
-export type DragContext = {
+export type ScrollContext = {
   parent: AnyActorRef
   ref: RefObject<HTMLDivElement>
 }
 
-type DragEventSync = {
+type ScrollEventSync = {
   type: 'SYNC'
   pos: Box
 }
-type DragEventSlide = {
+type ScrollEventSlide = {
   type: 'SLIDE'
   P: Box
   Q: Box
 }
-type DragEventCancel = {
+type ScrollEventCancel = {
   type: 'CANCEL'
   pos: Box
 }
-type DragEventStepDone = {
+type ScrollEventStepDone = {
   type: 'STEP.DONE'
   count: number
 }
 
-export type DragEvent =
-  | DragEventSync
-  | DragEventSlide
-  | DragEventCancel
-  | DragEventStepDone
+export type ScrollEvent =
+  | ScrollEventSync
+  | ScrollEventSlide
+  | ScrollEventCancel
+  | ScrollEventStepDone
 
-export const dragMachine = setup({
+export const scrollMachine = setup({
   types: {
-    input: {} as DragInput,
-    context: {} as DragContext,
-    events: {} as DragEvent,
+    input: {} as ScrollInput,
+    context: {} as ScrollContext,
+    events: {} as ScrollEvent,
   },
   actions: {
     syncScroll: (_, { e, pos }: { e: null | HTMLDivElement; pos: Box }): void =>
@@ -64,7 +64,7 @@ export const dragMachine = setup({
     step: stepMachine,
   },
 }).createMachine({
-  id: 'drag',
+  id: 'scroll',
   initial: 'Idle',
   context: ({ input: { parent, ref } }) => ({
     parent,
@@ -135,4 +135,4 @@ export const dragMachine = setup({
   },
 })
 
-export type DragActorRef = ActorRefFrom<typeof dragMachine>
+export type ScrollActorRef = ActorRefFrom<typeof scrollMachine>

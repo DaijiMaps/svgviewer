@@ -1,6 +1,6 @@
 import { ReadonlyDeep } from 'type-fest'
 import { BoxBox as Box, boxCenter, boxCopy, boxMove } from './box/prefixed'
-import { VecVec as Vec, vecSub } from './vec/prefixed'
+import { VecVec as Vec, vecCopy, vecSub } from './vec/prefixed'
 
 export type Drag = ReadonlyDeep<{
   focus: Vec
@@ -10,7 +10,7 @@ export type Drag = ReadonlyDeep<{
 
 export const dragStart = (container: Box, focus: Vec): Drag => {
   return {
-    focus: focus,
+    focus: vecCopy(focus),
     start: boxCopy(container),
     move: boxCopy(container),
   }
