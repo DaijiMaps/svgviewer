@@ -20,11 +20,11 @@ export function dragStyle(pointer: Readonly<PointerState>) {
 export function moveStyle(pointer: Readonly<PointerState>) {
   const { layout, animation } = pointer.context
 
-  if (!pointer.matches({ Animator: 'Moving' })) {
+  if (!pointer.matches({ Animator: 'Animating' })) {
     return ''
   }
 
-  if (animation === null) {
+  if (animation === null || animation.move === null) {
     return ''
   }
 
@@ -47,11 +47,11 @@ ${moveKeyFrames(d)}
 export function zoomStyle(pointer: Readonly<PointerState>) {
   const { layout, focus, zoom, nextZoom, animation } = pointer.context
 
-  if (!pointer.matches({ Animator: 'Zooming' })) {
+  if (!pointer.matches({ Animator: 'Animating' })) {
     return ''
   }
 
-  if (animation === null) {
+  if (animation === null || animation.zoom === null) {
     return ''
   }
 

@@ -74,12 +74,14 @@ export type PointerContext = {
   debug: boolean
 }
 
-type PointerMiscEvent =
+type PointerExternalEvent =
   | { type: 'LAYOUT'; config: LayoutConfig }
   | { type: 'RENDERED' }
-  | { type: 'ANIMATION.MOVE' }
-  | { type: 'ANIMATION.ZOOM' }
   | { type: 'ANIMATION.END' }
+  | { type: 'SLIDE.DRAG.SLIDED' }
+
+type PointerInternalEvent =
+  | { type: 'ANIMATION' }
   | { type: 'ANIMATION.DONE' }
   | { type: 'DRAG' }
   | { type: 'DRAG.DONE' }
@@ -93,7 +95,6 @@ type PointerMiscEvent =
   | { type: 'SLIDE.DONE' }
   | { type: 'SLIDE.DRAG.DONE' }
   | { type: 'SLIDE.DRAG.SLIDE' }
-  | { type: 'SLIDE.DRAG.SLIDED' }
   | { type: 'EXPAND'; n?: number }
   | { type: 'EXPAND.DONE' }
   | { type: 'EXPAND.EXPANDED' }
@@ -140,7 +141,10 @@ export type PointerPointerEvent =
   | PointerEventKeyDown
   | PointerEventKeyUp
 
-export type _PointerEvent = PointerMiscEvent | PointerPointerEvent
+export type _PointerEvent =
+  | PointerExternalEvent
+  | PointerInternalEvent
+  | PointerPointerEvent
 
 //// pointerMachine
 
@@ -162,7 +166,11 @@ export const pointerMachine = setup({
     isMultiTouchEnding: ({ context: { touches } }) =>
       isMultiTouchEnding(touches),
     isExpanded: ({ context }) => context.expand !== 1,
-    isZooming: ({ context }) => context.touches.zoom !== null,
+    isTouchZooming: ({ context }) => context.touches.zoom !== null,
+    isMoving: ({ context: { animation } }) =>
+      animation !== null && animation.move !== null,
+    isZooming: ({ context: { animation } }) =>
+      animation !== null && animation.zoom !== null,
     idle: and([
       stateIn({ Pointer: 'Idle' }),
       stateIn({ Dragger: 'Inactive' }),
@@ -171,7 +179,7 @@ export const pointerMachine = setup({
     ]),
     dragging: and([
       stateIn({ Pointer: 'Dragging' }),
-      stateIn({ Dragger: { Active: 'Sliding' } }),
+      stateIn({ Dragger: 'Sliding' }),
       stateIn({ Slider: { Handler: 'Inactive' } }),
       stateIn({ Animator: 'Inactive' }),
     ]),
@@ -183,13 +191,13 @@ export const pointerMachine = setup({
     ]),
     sliding: and([
       stateIn({ Pointer: 'Dragging' }),
-      stateIn({ Dragger: { Active: 'Sliding' } }),
+      stateIn({ Dragger: 'Sliding' }),
       stateIn({ Slider: { Handler: 'Active' } }),
       stateIn({ Animator: 'Inactive' }),
     ]),
     slidingDragBusy: and([
       stateIn({ Pointer: 'Dragging' }),
-      stateIn({ Dragger: { Active: 'Sliding' } }),
+      stateIn({ Dragger: 'Sliding' }),
       stateIn({ Slider: { Handler: 'Active' } }),
       stateIn({ Slider: { Drag: 'Busy' } }),
       stateIn({ Animator: 'Inactive' }),
@@ -245,7 +253,7 @@ export const pointerMachine = setup({
       z: () => 0,
       nextZoom: ({ context: { zoom, z } }): number => zoom + z,
     }),
-    endZoom: assign({
+    endAnimation: assign({
       layout: ({ context: { layout, animation } }): Layout =>
         animation === null ? layout : animationEndLayout(layout, animation),
       zoom: ({ context: { nextZoom } }): number => nextZoom,
@@ -373,7 +381,7 @@ export const pointerMachine = setup({
                     params: ({ event }) => ({ ev: event.ev, relative: 500 }),
                   },
                 ],
-                target: 'Moving',
+                target: 'Animating',
               },
             ],
             'KEY.UP': [
@@ -414,7 +422,7 @@ export const pointerMachine = setup({
                   },
                   'startZoom',
                 ],
-                target: 'Zooming',
+                target: 'Animating',
               },
             ],
             CLICK: {
@@ -433,7 +441,7 @@ export const pointerMachine = setup({
                 },
                 'startZoom',
               ],
-              target: 'Zooming',
+              target: 'Animating',
             },
             'POINTER.DOWN': {
               actions: {
@@ -451,22 +459,6 @@ export const pointerMachine = setup({
             },
           },
         },
-        Moving: {
-          entry: raise({ type: 'ANIMATION.MOVE' }),
-          on: {
-            'ANIMATION.DONE': {
-              target: 'Idle',
-            },
-          },
-        },
-        Zooming: {
-          entry: raise({ type: 'ANIMATION.ZOOM' }),
-          on: {
-            'ANIMATION.DONE': {
-              target: 'Idle',
-            },
-          },
-        },
         Expanding: {
           initial: 'Checking',
           onDone: 'Idle',
@@ -475,24 +467,20 @@ export const pointerMachine = setup({
               always: [
                 {
                   guard: not('isExpanded'),
+                  actions: raise({ type: 'EXPAND' }),
                   target: 'Expanding',
                 },
                 {
-                  target: 'Unexpanding',
+                  actions: raise({ type: 'UNEXPAND' }),
+                  target: 'Expanding',
                 },
               ],
             },
             Expanding: {
-              entry: raise({ type: 'EXPAND' }),
               on: {
                 'EXPAND.DONE': {
                   target: 'Done',
                 },
-              },
-            },
-            Unexpanding: {
-              entry: raise({ type: 'UNEXPAND' }),
-              on: {
                 'UNEXPAND.DONE': {
                   target: 'Done',
                 },
@@ -518,8 +506,16 @@ export const pointerMachine = setup({
         },
         Touching: {
           on: {
-            'ANIMATION.ZOOM': { target: 'Zooming' },
+            ANIMATION: { target: 'Animating' },
             'TOUCH.DONE': { target: 'Idle' },
+          },
+        },
+        Animating: {
+          entry: raise({ type: 'ANIMATION' }),
+          on: {
+            'ANIMATION.DONE': {
+              target: 'Idle',
+            },
           },
         },
       },
@@ -531,40 +527,31 @@ export const pointerMachine = setup({
           on: {
             DRAG: {
               guard: 'idle',
-              target: 'Active',
+              target: 'Expanding',
             },
           },
         },
-        Active: {
-          initial: 'Expanding',
-          onDone: 'Inactive',
-          states: {
-            Expanding: {
-              entry: raise({ type: 'EXPAND', n: 3 }),
-              on: {
-                'EXPAND.DONE': {
-                  target: 'Sliding',
-                },
-              },
+        Expanding: {
+          entry: raise({ type: 'EXPAND', n: 3 }),
+          on: {
+            'EXPAND.DONE': {
+              target: 'Sliding',
             },
-            Sliding: {
-              entry: raise({ type: 'SLIDE' }),
-              on: {
-                'SLIDE.DONE': {
-                  target: 'Unexpanding',
-                },
-              },
+          },
+        },
+        Sliding: {
+          entry: raise({ type: 'SLIDE' }),
+          on: {
+            'SLIDE.DONE': {
+              target: 'Unexpanding',
             },
-            Unexpanding: {
-              entry: raise({ type: 'UNEXPAND' }),
-              on: {
-                'UNEXPAND.DONE': {
-                  target: 'Done',
-                },
-              },
-            },
-            Done: {
-              type: 'final',
+          },
+        },
+        Unexpanding: {
+          entry: raise({ type: 'UNEXPAND' }),
+          on: {
+            'UNEXPAND.DONE': {
+              target: 'Inactive',
             },
           },
         },
@@ -610,7 +597,7 @@ export const pointerMachine = setup({
                 'POINTER.UP': [
                   {
                     guard: 'slidingDragBusy',
-                    target: 'Waiting',
+                    target: 'Sliding',
                   },
                   {
                     target: 'Done',
@@ -619,7 +606,7 @@ export const pointerMachine = setup({
                 'DRAG.CANCEL': [
                   {
                     guard: 'slidingDragBusy',
-                    target: 'Waiting',
+                    target: 'Sliding',
                   },
                   {
                     target: 'Done',
@@ -627,7 +614,7 @@ export const pointerMachine = setup({
                 ],
               },
             },
-            Waiting: {
+            Sliding: {
               on: {
                 'SLIDE.DRAG.DONE': {
                   guard: not('slidingDragBusy'),
@@ -741,28 +728,25 @@ export const pointerMachine = setup({
       states: {
         Inactive: {
           on: {
-            'ANIMATION.MOVE': {
-              target: 'Moving',
-            },
-            'ANIMATION.ZOOM': {
-              target: 'Zooming',
+            ANIMATION: {
+              target: 'Animating',
             },
           },
         },
-        Moving: {
+        Animating: {
           on: {
-            'ANIMATION.END': {
-              actions: ['endZoom', 'recenterLayout', 'resetScroll'],
-              target: 'Done',
-            },
-          },
-        },
-        Zooming: {
-          on: {
-            'ANIMATION.END': {
-              actions: 'endZoom',
-              target: 'Done',
-            },
+            'ANIMATION.END': [
+              {
+                guard: 'isMoving',
+                actions: ['endAnimation', 'recenterLayout', 'resetScroll'],
+                target: 'Done',
+              },
+              {
+                guard: 'isZooming',
+                actions: 'endAnimation',
+                target: 'Done',
+              },
+            ],
           },
         },
         Done: {
@@ -772,46 +756,40 @@ export const pointerMachine = setup({
       },
     },
     PointerMonitor: {
-      initial: 'Idle',
+      initial: 'Inactive',
       states: {
-        Idle: {
+        Inactive: {
           on: {
             'POINTER.DOWN': {
-              target: 'Busy',
+              target: 'Active',
             },
           },
         },
-        Busy: {
-          initial: 'Idle',
-          onDone: 'Idle',
-          states: {
-            Idle: {
-              on: {
-                'POINTER.MOVE': {
-                  target: 'Busy',
-                },
-                'POINTER.UP': {
-                  actions: raise({ type: 'DRAG.DONE' }),
-                  target: 'Done',
-                },
-              },
+        Active: {
+          on: {
+            'POINTER.MOVE': {
+              target: 'Dragging',
             },
-            Busy: {
-              entry: raise({ type: 'DRAG' }),
-              on: {
-                'POINTER.UP': {
-                  target: 'Done',
-                },
-                'DRAG.CANCEL': {
-                  target: 'Done',
-                },
-              },
-            },
-            Done: {
-              entry: raise({ type: 'DRAG.DONE' }),
-              type: 'final',
+            'POINTER.UP': {
+              actions: raise({ type: 'DRAG.DONE' }),
+              target: 'Done',
             },
           },
+        },
+        Dragging: {
+          entry: raise({ type: 'DRAG' }),
+          on: {
+            'POINTER.UP': {
+              target: 'Done',
+            },
+            'DRAG.CANCEL': {
+              target: 'Done',
+            },
+          },
+        },
+        Done: {
+          entry: raise({ type: 'DRAG.DONE' }),
+          always: 'Inactive',
         },
       },
     },
@@ -821,39 +799,33 @@ export const pointerMachine = setup({
         Active: {
           on: {
             'TOUCH.START': {
-              actions: {
-                type: 'startTouches',
-                params: ({ event }) => ({ ev: event.ev }),
-              },
-              target: 'StartDone',
+              actions: [
+                {
+                  type: 'startTouches',
+                  params: ({ event }) => ({ ev: event.ev }),
+                },
+                raise({ type: 'TOUCH.START.DONE' }),
+              ],
             },
             'TOUCH.MOVE': {
-              actions: {
-                type: 'moveTouches',
-                params: ({ event }) => ({ ev: event.ev }),
-              },
-              target: 'MoveDone',
+              actions: [
+                {
+                  type: 'moveTouches',
+                  params: ({ event }) => ({ ev: event.ev }),
+                },
+                raise({ type: 'TOUCH.MOVE.DONE' }),
+              ],
             },
             'TOUCH.END': {
-              actions: {
-                type: 'endTouches',
-                params: ({ event }) => ({ ev: event.ev }),
-              },
-              target: 'EndDone',
+              actions: [
+                {
+                  type: 'endTouches',
+                  params: ({ event }) => ({ ev: event.ev }),
+                },
+                raise({ type: 'TOUCH.END.DONE' }),
+              ],
             },
           },
-        },
-        StartDone: {
-          entry: raise({ type: 'TOUCH.START.DONE' }),
-          always: 'Active',
-        },
-        MoveDone: {
-          entry: raise({ type: 'TOUCH.MOVE.DONE' }),
-          always: 'Active',
-        },
-        EndDone: {
-          entry: raise({ type: 'TOUCH.END.DONE' }),
-          always: 'Active',
         },
       },
     },
@@ -872,9 +844,9 @@ export const pointerMachine = setup({
           entry: raise({ type: 'TOUCH' }),
           on: {
             'TOUCH.MOVE.DONE': {
-              guard: and(['touching', 'isZooming']),
+              guard: and(['touching', 'isTouchZooming']),
               actions: ['zoomTouches', 'startZoom', 'resetTouches'],
-              target: 'Zooming',
+              target: 'Animating',
             },
             'TOUCH.END.DONE': {
               guard: and(['isMultiTouchEnding']),
@@ -883,8 +855,8 @@ export const pointerMachine = setup({
             },
           },
         },
-        Zooming: {
-          entry: raise({ type: 'ANIMATION.ZOOM' }),
+        Animating: {
+          entry: raise({ type: 'ANIMATION' }),
           on: {
             'ANIMATION.DONE': {
               target: 'Inactive',
