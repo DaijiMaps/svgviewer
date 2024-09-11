@@ -19,9 +19,7 @@ export const Debug = (props: DebugProps) => {
       <ul>
         {[
           ['Pointer', pointer.value.Pointer],
-          pointer.value.Dragger !== 'Inactive'
-            ? ['Dragger.Active', pointer.value.Dragger.Active]
-            : ['Dragger', pointer.value.Dragger],
+          ['Dragger', pointer.value.Dragger],
           ['Slider.Handler', pointer.value.Slider.Handler],
           ['Slider.Drag', pointer.value.Slider.Drag],
           ['Expander', pointer.value.Expander],
