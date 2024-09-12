@@ -1,8 +1,4 @@
-/* eslint-disable functional/immutable-data */
-/* eslint-disable functional/no-conditional-statements */
-/* eslint-disable functional/no-expression-statements */
-/* eslint-disable functional/prefer-immutable-types */
-/* eslint-disable functional/no-loop-statements */
+import { ReadonlyDeep } from 'type-fest'
 import { dist } from './vec/dist'
 import { VecVec as Vec, vecInterpolate, vecMidpoint } from './vec/prefixed'
 
@@ -11,13 +7,15 @@ export interface Zoom {
   dir: number
 }
 
-export interface Touches {
-  vecs: Map<number, Vec[]>
+type Vecs = ReadonlyDeep<Map<number, Vec[]>>
+
+export type Touches = ReadonlyDeep<{
+  vecs: Vecs
   points: Vec[]
   focus: null | Vec
   dists: number[]
   zoom: null | Zoom
-}
+}>
 
 function calcZoom(dists: Readonly<number[]>, p: Vec): null | Zoom {
   if (dists.length >= 3) {
@@ -30,32 +28,40 @@ function calcZoom(dists: Readonly<number[]>, p: Vec): null | Zoom {
   return null
 }
 
-function updateDists(dists: number[], dd: number, limit: number): number[] {
+function updateDists(
+  dists: Readonly<number[]>,
+  dd: number,
+  limit: number
+): Readonly<number[]> {
   const prev = dists.length > 0 ? dists[0] : dd
   const l = Math.pow(prev - dd, 2)
   // XXX limit
   if (dists.length === 0 || l > limit / 10) {
-    dists.unshift(dd)
+    return [dd, ...dists]
+  } else {
+    return dists
   }
-  return dists
 }
 
-export function vecsToPoints(vecs: Map<number, Vec[]>): Vec[] {
-  return [...vecs.values()].flatMap((vs: Vec[]) =>
+export function vecsToPoints(vecs: Vecs): Readonly<Vec[]> {
+  return [...vecs.values()].flatMap((vs: Readonly<Vec[]>) =>
     vs.length === 0 ? [] : [vs[0]]
   )
 }
 
-function pointsToFocus(points: Vec[]): null | Vec {
+function pointsToFocus(points: Readonly<Vec[]>): null | Vec {
   return points.length < 2 ? null : vecMidpoint(points)
 }
 
-export function handleTouchStart(touches: Touches, ev: TouchEvent): Touches {
-  const vecs = structuredClone(touches.vecs)
-  for (const t of ev.changedTouches) {
-    const v = { x: t.clientX, y: t.clientY }
-    vecs.set(t.identifier, [v])
-  }
+export function handleTouchStart(
+  touches: Touches,
+  ev: Readonly<TouchEvent>
+): Touches {
+  const entries: [number, Vec[]][] = [...ev.changedTouches].map((t) => [
+    t.identifier,
+    [{ x: t.clientX, y: t.clientY }],
+  ])
+  const vecs: Vecs = new Map([...touches.vecs.entries(), ...entries])
   const points = vecsToPoints(vecs)
   const focus = pointsToFocus(points)
   return { ...touches, vecs, points, focus }
@@ -63,33 +69,37 @@ export function handleTouchStart(touches: Touches, ev: TouchEvent): Touches {
 
 export function handleTouchMove(
   touches: Touches,
-  ev: TouchEvent,
+  ev: Readonly<TouchEvent>,
   limit: number
 ): Touches {
-  const vecs = structuredClone(touches.vecs)
-  const pqs: Vec[] = []
-  for (const t of ev.changedTouches) {
-    const vs = vecs.get(t.identifier)
-    if (vs === undefined || vs.length === 0) {
-      continue
-    }
-    const prev = vs[0]
-    const v = { x: t.clientX, y: t.clientY }
-    const vd = dist(prev, v)
-    // XXX limit
-    if (vd < limit / 10) {
-      continue
-    }
-    vs.unshift(v)
-    vecs.set(t.identifier, vs)
-    pqs.unshift(v)
-  }
+  const pqs = new Map(
+    [...ev.changedTouches].flatMap((t) => {
+      const vs = touches.vecs.get(t.identifier)
+      if (vs === undefined || vs.length === 0) {
+        return []
+      }
+      const prev = vs[0]
+      const v = { x: t.clientX, y: t.clientY }
+      const vd = dist(prev, v)
+      // XXX limit
+      if (vd < limit / 10) {
+        return []
+      }
+      return [[t.identifier, v]]
+    })
+  )
+  const vecs: Vecs = new Map(
+    [...touches.vecs.entries()].map(([id, vs]) => {
+      const v = pqs.get(id)
+      return v !== undefined ? [id, [v, ...vs]] : [id, vs]
+    })
+  )
   const points = vecsToPoints(vecs)
   const focus = pointsToFocus(points)
-  if (pqs.length < 2) {
+  if (pqs.size < 2) {
     return { ...touches, vecs, points, focus }
   }
-  const [p, q] = pqs
+  const [p, q] = [...pqs.values()]
   const dists = updateDists(structuredClone(touches.dists), dist(p, q), limit)
   const zoom = calcZoom(dists, vecInterpolate(p, q, 0.5))
   return {
@@ -101,11 +111,14 @@ export function handleTouchMove(
   }
 }
 
-export function handleTouchEnd(touches: Touches, ev: TouchEvent): Touches {
-  const vecs = structuredClone(touches.vecs)
-  for (const t of ev.changedTouches) {
-    vecs.delete(t.identifier)
-  }
+export function handleTouchEnd(
+  touches: Touches,
+  ev: Readonly<TouchEvent>
+): Touches {
+  const ids = new Set([...ev.changedTouches].map((t) => t.identifier))
+  const vecs = new Map(
+    [...touches.vecs.entries()].filter(([id]) => !ids.has(id))
+  )
   const points = vecsToPoints(vecs)
   const focus = pointsToFocus(points)
   return {
