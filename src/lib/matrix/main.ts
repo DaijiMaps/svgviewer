@@ -28,13 +28,7 @@ function matrix(
 
 export type V = ImmutableShallow<[s: number, t: number]>
 export type H = ImmutableShallow<[p: number, q: number, r: number]>
-export type M = ImmutableShallow<
-  [
-    ab: [a: number, b: number],
-    cd: [c: number, d: number],
-    ef: [e: number, f: number],
-  ]
->
+export type M = ImmutableShallow<[ab: V, cd: V, ef: V]>
 
 export const ab = ([ab]: M): V => ab
 export const cd = ([, cd]: M): V => cd

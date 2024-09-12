@@ -10,6 +10,10 @@ import {
   ReactPointerEvent,
 } from './xstate-pointer'
 
+const selectLayout = (pointer: PointerState) => pointer.context.layout
+const selectFocus = (pointer: PointerState) => pointer.context.focus
+const selectTouches = (pointer: PointerState) => pointer.context.touches
+
 const usePointerKey = (send: PointerSend) => {
   const keyDown = useCallback(
     (ev: KeyboardEvent) => send({ type: 'KEY.DOWN', ev }),
@@ -31,9 +35,6 @@ const usePointerKey = (send: PointerSend) => {
     }
   }, [keyDown, keyUp, send])
 }
-
-const selectLayout = (pointer: PointerState) => pointer.context.layout
-const selectFocus = (pointer: PointerState) => pointer.context.focus
 
 export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
   const body = useWindowResize()
@@ -59,9 +60,6 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
       ),
     })
   }, [body, pointerSend])
-
-  const layout = useSelector(pointerRef, selectLayout)
-  const focus = useSelector(pointerRef, selectFocus)
 
   usePointerKey(pointerSend)
 
@@ -109,7 +107,8 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
     pointer,
     pointerSend,
     pointerRef,
-    layout,
-    focus,
+    layout: useSelector(pointerRef, selectLayout),
+    focus: useSelector(pointerRef, selectFocus),
+    touches: useSelector(pointerRef, selectTouches),
   }
 }

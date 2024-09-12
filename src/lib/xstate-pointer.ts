@@ -562,7 +562,7 @@ export const pointerMachine = setup({
                 'POINTER.MOVE': [
                   // XXX protect move handling with isMultiTouch
                   // XXX (checking context.touches directly/synchronously)
-                  // XXX checking state is too slow to block moves
+                  // XXX in-state guard is too slow to block moves
                   {
                     guard: and(['isMultiTouch', 'slidingDragBusy']),
                     target: 'Sliding',
@@ -785,38 +785,33 @@ export const pointerMachine = setup({
       },
     },
     TouchHandler: {
-      initial: 'Active',
-      states: {
-        Active: {
-          on: {
-            'TOUCH.START': {
-              actions: [
-                {
-                  type: 'startTouches',
-                  params: ({ event }) => ({ ev: event.ev }),
-                },
-                raise({ type: 'TOUCH.START.DONE' }),
-              ],
+      on: {
+        'TOUCH.START': {
+          actions: [
+            {
+              type: 'startTouches',
+              params: ({ event }) => ({ ev: event.ev }),
             },
-            'TOUCH.MOVE': {
-              actions: [
-                {
-                  type: 'moveTouches',
-                  params: ({ event }) => ({ ev: event.ev }),
-                },
-                raise({ type: 'TOUCH.MOVE.DONE' }),
-              ],
+            raise({ type: 'TOUCH.START.DONE' }),
+          ],
+        },
+        'TOUCH.MOVE': {
+          actions: [
+            {
+              type: 'moveTouches',
+              params: ({ event }) => ({ ev: event.ev }),
             },
-            'TOUCH.END': {
-              actions: [
-                {
-                  type: 'endTouches',
-                  params: ({ event }) => ({ ev: event.ev }),
-                },
-                raise({ type: 'TOUCH.END.DONE' }),
-              ],
+            raise({ type: 'TOUCH.MOVE.DONE' }),
+          ],
+        },
+        'TOUCH.END': {
+          actions: [
+            {
+              type: 'endTouches',
+              params: ({ event }) => ({ ev: event.ev }),
             },
-          },
+            raise({ type: 'TOUCH.END.DONE' }),
+          ],
         },
       },
     },

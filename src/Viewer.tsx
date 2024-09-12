@@ -11,7 +11,8 @@ import { Svg } from './Svg'
 export const Viewer = (props: PropsWithChildren) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const { pointer, pointerSend, layout, focus } = usePointer(containerRef)
+  const { pointer, pointerSend, layout, focus, touches } =
+    usePointer(containerRef)
 
   return (
     <>
@@ -29,7 +30,7 @@ export const Viewer = (props: PropsWithChildren) => {
           {props.children}
         </Svg>
       </Container>
-      <Guides _layout={layout} _focus={focus} />
+      <Guides _layout={layout} _focus={focus} _touches={touches} />
       {pointer.context.debug && (
         <Debug _pointer={pointer} _container={containerRef.current} />
       )}
