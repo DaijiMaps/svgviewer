@@ -8,6 +8,8 @@ export interface Zoom {
 }
 
 type Vecs = ReadonlyDeep<Map<number, Vec[]>>
+type VecsEntry = ReadonlyDeep<[number, Vec[]]>
+type VecsEntries = ReadonlyDeep<VecsEntry[]>
 
 export type Touches = ReadonlyDeep<{
   vecs: Vecs
@@ -57,7 +59,7 @@ export function handleTouchStart(
   touches: Touches,
   ev: Readonly<TouchEvent>
 ): Touches {
-  const entries: [number, Vec[]][] = [...ev.changedTouches].map((t) => [
+  const entries: VecsEntries = [...ev.changedTouches].map((t) => [
     t.identifier,
     [{ x: t.clientX, y: t.clientY }],
   ])
