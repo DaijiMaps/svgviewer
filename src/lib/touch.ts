@@ -45,14 +45,17 @@ export function vecsToPoints(vecs: Map<number, Vec[]>): Vec[] {
   )
 }
 
+function vecsToFocus(vecs: Map<number, Vec[]>): null | Vec {
+  return vecs.size < 2 ? null : vecMidpoint(vecsToPoints(vecs))
+}
+
 export function handleTouchStart(touches: Touches, ev: TouchEvent): Touches {
   const vecs = structuredClone(touches.vecs)
   for (const t of ev.changedTouches) {
     const v = { x: t.clientX, y: t.clientY }
     vecs.set(t.identifier, [v])
   }
-  const focus = vecs.size < 2 ? null : vecMidpoint(vecsToPoints(vecs))
-  return { ...touches, vecs, focus }
+  return { ...touches, vecs, focus: vecsToFocus(vecs) }
 }
 
 export function handleTouchMove(
@@ -84,7 +87,7 @@ export function handleTouchMove(
   const [p, q] = points
   const dists = updateDists(structuredClone(touches.dists), dist(p, q), limit)
   const zoom = calcZoom(dists, vecInterpolate(p, q, 0.5))
-  return { vecs, dists, zoom, focus: vecMidpoint(points) }
+  return { vecs, dists, zoom, focus: vecsToFocus(vecs) }
 }
 
 export function handleTouchEnd(touches: Touches, ev: TouchEvent): Touches {

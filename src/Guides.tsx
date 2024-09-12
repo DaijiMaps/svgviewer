@@ -1,4 +1,4 @@
-import { Cursor, MultiCursor } from './Cursor'
+import { Cursor } from './Cursor'
 import './Guides.css'
 import { Layout } from './lib/layout'
 import { Touches } from './lib/touch'
@@ -11,14 +11,13 @@ export interface GuidesProps {
 }
 
 export function Guides(props: GuidesProps) {
-  const { _touches: touches } = props
   return (
     <svg className="guides">
-      {touches.vecs.size >= 2 ? (
-        <MultiCursor _layout={props._layout} _touches={props._touches} />
-      ) : (
-        <Cursor _layout={props._layout} _focus={props._focus} />
-      )}
+      <Cursor
+        _layout={props._layout}
+        _focus={props._focus}
+        _touches={props._touches}
+      />
     </svg>
   )
 }
