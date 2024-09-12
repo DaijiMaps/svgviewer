@@ -1,5 +1,5 @@
 import { Layout } from './lib/layout'
-import { Touches, vecsToPoints } from './lib/touch'
+import { Touches } from './lib/touch'
 import { Vec } from './lib/vec'
 
 const CursorSvgPath = (props: { x: number; y: number; r: number }) => {
@@ -31,14 +31,12 @@ export const Cursor = (props: {
 }) => {
   const { _layout: layout, _focus: focus, _touches: touches } = props
 
-  const points = vecsToPoints(touches.vecs)
-
   return (
     <>
       <CursorSvgPath x={focus.x} y={focus.y} r={layout.config.fontSize / 2} />
-      {points.length > 1 && (
+      {touches.points.length > 1 && (
         <polyline
-          points={points.map(({ x, y }) => `${x},${y}`).join(' ')}
+          points={touches.points.map(({ x, y }) => `${x},${y}`).join(' ')}
           stroke="black"
           strokeWidth={(layout.config.fontSize * 0.05) / 2}
         />

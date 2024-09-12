@@ -304,6 +304,7 @@ export const pointerMachine = setup({
     resetTouches: assign({
       touches: () => ({
         vecs: new Map(),
+        points: [],
         dists: [],
         zoom: null,
         focus: null,
@@ -327,6 +328,7 @@ export const pointerMachine = setup({
     nextZoom: 0,
     touches: {
       vecs: new Map(),
+      points: [],
       dists: [],
       zoom: null,
       focus: null,

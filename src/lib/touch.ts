@@ -13,9 +13,10 @@ export interface Zoom {
 
 export interface Touches {
   vecs: Map<number, Vec[]>
+  points: Vec[]
+  focus: null | Vec
   dists: number[]
   zoom: null | Zoom
-  focus: null | Vec
 }
 
 function calcZoom(dists: Readonly<number[]>, p: Vec): null | Zoom {
@@ -45,8 +46,8 @@ export function vecsToPoints(vecs: Map<number, Vec[]>): Vec[] {
   )
 }
 
-function vecsToFocus(vecs: Map<number, Vec[]>): null | Vec {
-  return vecs.size < 2 ? null : vecMidpoint(vecsToPoints(vecs))
+function pointsToFocus(points: Vec[]): null | Vec {
+  return points.length < 2 ? null : vecMidpoint(points)
 }
 
 export function handleTouchStart(touches: Touches, ev: TouchEvent): Touches {
@@ -55,7 +56,9 @@ export function handleTouchStart(touches: Touches, ev: TouchEvent): Touches {
     const v = { x: t.clientX, y: t.clientY }
     vecs.set(t.identifier, [v])
   }
-  return { ...touches, vecs, focus: vecsToFocus(vecs) }
+  const points = vecsToPoints(vecs)
+  const focus = pointsToFocus(points)
+  return { ...touches, vecs, points, focus }
 }
 
 export function handleTouchMove(
@@ -64,7 +67,7 @@ export function handleTouchMove(
   limit: number
 ): Touches {
   const vecs = structuredClone(touches.vecs)
-  const points: Vec[] = []
+  const pqs: Vec[] = []
   for (const t of ev.changedTouches) {
     const vs = vecs.get(t.identifier)
     if (vs === undefined || vs.length === 0) {
@@ -79,15 +82,23 @@ export function handleTouchMove(
     }
     vs.unshift(v)
     vecs.set(t.identifier, vs)
-    points.unshift(v)
+    pqs.unshift(v)
   }
-  if (points.length < 2) {
-    return { ...touches, vecs }
+  const points = vecsToPoints(vecs)
+  const focus = pointsToFocus(points)
+  if (pqs.length < 2) {
+    return { ...touches, vecs, points, focus }
   }
-  const [p, q] = points
+  const [p, q] = pqs
   const dists = updateDists(structuredClone(touches.dists), dist(p, q), limit)
   const zoom = calcZoom(dists, vecInterpolate(p, q, 0.5))
-  return { vecs, dists, zoom, focus: vecsToFocus(vecs) }
+  return {
+    vecs,
+    points,
+    focus,
+    dists,
+    zoom,
+  }
 }
 
 export function handleTouchEnd(touches: Touches, ev: TouchEvent): Touches {
@@ -95,11 +106,14 @@ export function handleTouchEnd(touches: Touches, ev: TouchEvent): Touches {
   for (const t of ev.changedTouches) {
     vecs.delete(t.identifier)
   }
+  const points = vecsToPoints(vecs)
+  const focus = pointsToFocus(points)
   return {
     vecs,
+    points,
+    focus,
     dists: vecs.size === 0 ? [] : touches.dists,
     zoom: vecs.size === 0 ? null : touches.zoom,
-    focus: touches.focus,
   }
 }
 
