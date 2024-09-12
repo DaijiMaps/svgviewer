@@ -4,7 +4,7 @@
 /* eslint-disable functional/prefer-immutable-types */
 /* eslint-disable functional/no-loop-statements */
 import { dist } from './vec/dist'
-import { VecVec as Vec, vecInterpolate } from './vec/prefixed'
+import { VecVec as Vec, vecInterpolate, vecMidpoint } from './vec/prefixed'
 
 export interface Zoom {
   p: Vec
@@ -15,13 +15,13 @@ export interface Touches {
   vecs: Map<number, Vec[]>
   dists: number[]
   zoom: null | Zoom
+  focus: null | Vec
 }
 
 function calcZoom(dists: Readonly<number[]>, p: Vec): null | Zoom {
-  if (dists.length >= 4) {
-    const [d0, d1, d2, d3] = dists
-    const dir =
-      d0 < d1 && d1 < d2 && d2 < d3 ? -1 : d0 > d1 && d1 > d2 && d2 > d3 ? 1 : 0
+  if (dists.length >= 3) {
+    const [d0, d1, d2] = dists
+    const dir = d0 < d1 && d1 < d2 ? -1 : d0 > d1 && d1 > d2 ? 1 : 0
     if (dir !== 0) {
       return { p, dir }
     }
@@ -39,13 +39,20 @@ function updateDists(dists: number[], dd: number, limit: number): number[] {
   return dists
 }
 
+export function vecsToPoints(vecs: Map<number, Vec[]>): Vec[] {
+  return [...vecs.values()].flatMap((vs: Vec[]) =>
+    vs.length === 0 ? [] : [vs[0]]
+  )
+}
+
 export function handleTouchStart(touches: Touches, ev: TouchEvent): Touches {
   const vecs = structuredClone(touches.vecs)
   for (const t of ev.changedTouches) {
     const v = { x: t.clientX, y: t.clientY }
     vecs.set(t.identifier, [v])
   }
-  return { ...touches, vecs }
+  const focus = vecs.size < 2 ? null : vecMidpoint(vecsToPoints(vecs))
+  return { ...touches, vecs, focus }
 }
 
 export function handleTouchMove(
@@ -77,7 +84,7 @@ export function handleTouchMove(
   const [p, q] = points
   const dists = updateDists(structuredClone(touches.dists), dist(p, q), limit)
   const zoom = calcZoom(dists, vecInterpolate(p, q, 0.5))
-  return { vecs, dists, zoom }
+  return { vecs, dists, zoom, focus: vecMidpoint(points) }
 }
 
 export function handleTouchEnd(touches: Touches, ev: TouchEvent): Touches {
@@ -89,6 +96,7 @@ export function handleTouchEnd(touches: Touches, ev: TouchEvent): Touches {
     vecs,
     dists: vecs.size === 0 ? [] : touches.dists,
     zoom: vecs.size === 0 ? null : touches.zoom,
+    focus: touches.focus,
   }
 }
 

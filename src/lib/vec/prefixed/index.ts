@@ -4,10 +4,12 @@ import { dist, qdist } from '../dist'
 import { div, divF } from '../div'
 import { interpolate, interpolateF } from '../interpolate'
 import { one, vec, Vec, zero } from '../main'
+import { midpoint } from '../midpoint'
 import { min, minF } from '../min'
 import { mul, mulF } from '../mul'
 import { scale, scaleF } from '../scale'
 import { sub, subF } from '../sub'
+import { sum } from '../sum'
 
 export type { Vec as VecVec }
 
@@ -20,6 +22,7 @@ export {
   divF as vecDivF,
   interpolate as vecInterpolate,
   interpolateF as vecInterpolateF,
+  midpoint as vecMidpoint,
   min as vecMin,
   minF as vecMinF,
   mul as vecMul,
@@ -30,6 +33,7 @@ export {
   scaleF as vecScaleF,
   sub as vecSub,
   subF as vecSubF,
+  sum as vecSum,
   vec as vecVec,
   zero as vecZero,
 }

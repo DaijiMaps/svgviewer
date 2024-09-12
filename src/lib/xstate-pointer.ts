@@ -64,6 +64,7 @@ export type PointerContext = {
 
 type PointerExternalEvent =
   | { type: 'LAYOUT'; config: LayoutConfig }
+  | { type: 'DEBUG' }
   | { type: 'RENDERED' }
   | { type: 'ANIMATION.END' }
   | { type: 'SCROLL.SLIDE.DONE' }
@@ -285,23 +286,30 @@ export const pointerMachine = setup({
       animation: () => null,
     }),
     startTouches: assign({
-      touches: ({ context }, { ev }: { ev: TouchEvent }) =>
-        handleTouchStart(context.touches, ev),
+      touches: ({ context: { touches } }, { ev }: { ev: TouchEvent }) =>
+        handleTouchStart(touches, ev),
     }),
     moveTouches: assign({
-      touches: ({ context }, { ev }: { ev: TouchEvent }) =>
-        handleTouchMove(context.touches, ev, DIST_LIMIT),
+      touches: ({ context: { touches } }, { ev }: { ev: TouchEvent }) =>
+        handleTouchMove(touches, ev, DIST_LIMIT),
     }),
     endTouches: assign({
-      touches: ({ context }, { ev }: { ev: TouchEvent }) =>
-        handleTouchEnd(context.touches, ev),
+      touches: ({ context: { touches } }, { ev }: { ev: TouchEvent }) =>
+        handleTouchEnd(touches, ev),
+    }),
+    focusTouches: assign({
+      focus: ({ context: { touches, focus } }) =>
+        touches.focus !== null ? touches.focus : focus,
     }),
     resetTouches: assign({
       touches: () => ({
         vecs: new Map(),
         dists: [],
         zoom: null,
+        focus: null,
       }),
+      focus: ({ context: { touches, focus } }) =>
+        touches.focus !== null ? touches.focus : focus,
     }),
   },
   actors: {
@@ -321,6 +329,7 @@ export const pointerMachine = setup({
       vecs: new Map(),
       dists: [],
       zoom: null,
+      focus: null,
     },
     drag: null,
     animation: null,
@@ -348,6 +357,9 @@ export const pointerMachine = setup({
                 type: 'layout',
                 params: ({ event: { config } }) => ({ config }),
               },
+            },
+            DEBUG: {
+              actions: 'toggleDebug',
             },
             'KEY.DOWN': [
               {
@@ -752,6 +764,7 @@ export const pointerMachine = setup({
         Inactive: {
           on: {
             'POINTER.DOWN': {
+              guard: 'idle',
               target: 'Active',
             },
           },
@@ -776,6 +789,10 @@ export const pointerMachine = setup({
             'DRAG.CANCEL': {
               target: 'Done',
             },
+            'TOUCH.MOVE.DONE': {
+              guard: 'isMultiTouch',
+              target: 'Done',
+            },
           },
         },
         Done: {
@@ -792,6 +809,7 @@ export const pointerMachine = setup({
               type: 'startTouches',
               params: ({ event }) => ({ ev: event.ev }),
             },
+            'focusTouches',
             raise({ type: 'TOUCH.START.DONE' }),
           ],
         },
@@ -801,6 +819,7 @@ export const pointerMachine = setup({
               type: 'moveTouches',
               params: ({ event }) => ({ ev: event.ev }),
             },
+            'focusTouches',
             raise({ type: 'TOUCH.MOVE.DONE' }),
           ],
         },
@@ -810,6 +829,7 @@ export const pointerMachine = setup({
               type: 'endTouches',
               params: ({ event }) => ({ ev: event.ev }),
             },
+            'focusTouches',
             raise({ type: 'TOUCH.END.DONE' }),
           ],
         },
@@ -827,7 +847,7 @@ export const pointerMachine = setup({
           },
         },
         Active: {
-          entry: raise({ type: 'TOUCH' }),
+          entry: [raise({ type: 'TOUCH' }), raise({ type: 'DRAG.CANCEL' })],
           on: {
             'TOUCH.MOVE.DONE': {
               guard: and(['touching', 'isTouchZooming']),

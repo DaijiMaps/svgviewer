@@ -25,7 +25,6 @@ export const Debug = (props: DebugProps) => {
           ['Expander', pointer.value.Expander],
           ['Animator', pointer.value.Animator],
           ['PointerMonitor', pointer.value.PointerMonitor],
-          ['TouchHandler', pointer.value.TouchHandler],
           ['TouchMonitor', pointer.value.TouchMonitor],
         ].map(([k, v], i) => (
           <li key={i}>
