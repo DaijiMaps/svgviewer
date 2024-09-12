@@ -1,14 +1,14 @@
 # svgviewer
 
+https://svgviewer.pages.dev/
+
 ## tree
 
 ```
 html
   body
     div.container
-      div.outer
-        svg.svg
-          g.inner
+      svg.svg
 ```
 
 ## coordinates
@@ -17,21 +17,16 @@ html
   - same as `body`
   - 100vw x 100vh
   - content can grow (scrollWidth/scrollHeight)
-  - overflow is hidden
-  - scrollLeft/scrollTop changes during drag
-- div.outer
-  - can grow
+  - scrollLeft/scrollTop changes during drag (expanded)
+    - overflow is hidden
 - svg.svg
-  - 100% x 100%
+  - can grow ("expand")
   - keep aspect ratio
   - viewBox changes
-  - html coordinate
-- g.inner
-  - svg coordinate
 
 ## zoom
 
 - decide focus point
-- do CSS animation transform scale against .outer
+- do CSS animation transform scale against svg.svg
 - after animation end, reset CSS transform
-- calculate viewBox & apply
+- calculate viewBox & apply (recenter)
