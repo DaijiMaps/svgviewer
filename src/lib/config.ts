@@ -16,6 +16,7 @@ export const MAP_VIEWBOX = {
 }
 
 const FONT_SIZE = 16
+const ANIMATION_DURATION = 625
 const WIDTH = MAP_VIEWBOX.width
 const HEIGHT = MAP_VIEWBOX.height
 const VIEWBOX = MAP_VIEWBOX
@@ -31,6 +32,7 @@ const layoutConfig = configLayout(FONT_SIZE, origViewBox)
 
 export const config = {
   FONT_SIZE,
+  ANIMATION_DURATION,
   WIDTH,
   HEIGHT,
   VIEWBOX,

@@ -1,3 +1,4 @@
+import { config } from './config'
 import { toMatrixOuter } from './coord'
 import { matrixEmpty, matrixScaleAt, matrixToString } from './matrix/prefixed'
 import { matrixTranslate, transformPoint } from './transform'
@@ -36,7 +37,7 @@ export function moveStyle(pointer: Readonly<PointerState>) {
       : `
 .svg {
   will-change: transform;
-  animation: move 500ms ease;
+  animation: move ${config.ANIMATION_DURATION}ms ease;
 }
 ${moveKeyFrames(d)}
 `
@@ -63,7 +64,7 @@ export function zoomStyle(pointer: Readonly<PointerState>) {
       : `
 .svg {
   will-change: transform;
-  animation: zoomInOut 500ms ease;
+  animation: zoomInOut ${config.ANIMATION_DURATION}ms ease;
 }
 ${zoomInOutKeyFrames(
   zoomToScale(zd),
