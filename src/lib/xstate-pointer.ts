@@ -64,6 +64,7 @@ export type PointerContext = {
 
 type PointerExternalEvent =
   | { type: 'LAYOUT'; config: LayoutConfig }
+  | { type: 'LAYOUT.RESET' }
   | { type: 'DEBUG' }
   | { type: 'RENDERED' }
   | { type: 'ANIMATION.END' }
@@ -359,6 +360,9 @@ export const pointerMachine = setup({
                 type: 'layout',
                 params: ({ event: { config } }) => ({ config }),
               },
+            },
+            'LAYOUT.RESET': {
+              actions: 'resetLayout',
             },
             DEBUG: {
               actions: 'toggleDebug',

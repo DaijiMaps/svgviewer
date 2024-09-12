@@ -39,7 +39,7 @@ export const Viewer = (props: PropsWithChildren) => {
         {moveStyle(pointer)}
         {zoomStyle(pointer)}
       </style>
-      <Header />
+      <Header _pointerSend={pointerSend} />
       <Footer _pointerSend={pointerSend} />
     </>
   )
