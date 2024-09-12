@@ -36,7 +36,7 @@ export function moveStyle(pointer: Readonly<PointerState>) {
       : `
 .svg {
   will-change: transform;
-  animation: move 1000ms ease;
+  animation: move 500ms ease;
 }
 ${moveKeyFrames(d)}
 `
@@ -63,7 +63,7 @@ export function zoomStyle(pointer: Readonly<PointerState>) {
       : `
 .svg {
   will-change: transform;
-  animation: zoomInOut 1000ms ease;
+  animation: zoomInOut 500ms ease;
 }
 ${zoomInOutKeyFrames(
   zoomToScale(zd),

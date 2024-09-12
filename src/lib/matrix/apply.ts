@@ -8,5 +8,4 @@ export function apply(m: M, v: V, n: number): V {
 
 export type ApplyF = (n: number) => (v: V) => (m: M) => V
 
-export const applyF: ApplyF = (n: number) => (v: V) => (m: M) =>
-  apply(m, v, n)
+export const applyF: ApplyF = (n: number) => (v: V) => (m: M) => apply(m, v, n)

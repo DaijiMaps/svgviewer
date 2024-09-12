@@ -844,12 +844,13 @@ export const pointerMachine = setup({
           on: {
             'TOUCH.MOVE.DONE': {
               guard: and(['isMultiTouch']),
+              actions: raise({ type: 'DRAG.CANCEL' }),
               target: 'Active',
             },
           },
         },
         Active: {
-          entry: [raise({ type: 'TOUCH' }), raise({ type: 'DRAG.CANCEL' })],
+          entry: [raise({ type: 'TOUCH' })],
           on: {
             'TOUCH.MOVE.DONE': {
               guard: and(['touching', 'isTouchZooming']),
@@ -858,8 +859,8 @@ export const pointerMachine = setup({
             },
             'TOUCH.END.DONE': {
               guard: and(['isMultiTouchEnding']),
-              actions: ['resetTouches', raise({ type: 'TOUCH.DONE' })],
-              target: 'Inactive',
+              actions: ['resetTouches'],
+              target: 'Done',
             },
           },
         },
@@ -867,9 +868,13 @@ export const pointerMachine = setup({
           entry: raise({ type: 'ANIMATION' }),
           on: {
             'ANIMATION.DONE': {
-              target: 'Inactive',
+              target: 'Done',
             },
           },
+        },
+        Done: {
+          entry: raise({ type: 'TOUCH.DONE' }),
+          always: 'Inactive',
         },
       },
     },

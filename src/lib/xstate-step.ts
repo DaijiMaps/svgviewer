@@ -7,9 +7,9 @@ import { animationFrameLogic } from './xstate-animation-frame'
 // XXX
 // XXX
 // XXX
-const ALPHA = 0.4
+const ALPHA = 0.2
 const LIMIT = 10
-const MAX_COUNT = 30
+const MAX_COUNT = 100
 // XXX
 // XXX
 // XXX
