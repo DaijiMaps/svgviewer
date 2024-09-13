@@ -154,7 +154,7 @@ export const pointerMachine = setup({
     isMultiTouchEnding: ({ context: { touches } }) =>
       isMultiTouchEnding(touches),
     isExpanded: ({ context }) => context.expand !== 1,
-    isTouchZooming: ({ context }) => context.touches.zoom !== null,
+    isTouchZooming: ({ context }) => context.touches.z !== null,
     isMoving: ({ context: { animation } }) =>
       animation !== null && animation.move !== null,
     isZooming: ({ context: { animation } }) =>
@@ -229,9 +229,9 @@ export const pointerMachine = setup({
     }),
     zoomTouches: assign({
       z: ({ context: { touches, z } }): number =>
-        touches.zoom === null ? z : touches.zoom.dir,
+        touches.z !== null ? touches.z : z,
       focus: ({ context: { focus, touches } }) =>
-        touches.zoom === null ? focus : touches.zoom.p,
+        touches.z !== null && touches.focus !== null ? touches.focus : focus,
     }),
     startZoom: assign({
       animation: ({ context: { layout, focus, z, zoom } }): null | Animation =>
@@ -252,6 +252,7 @@ export const pointerMachine = setup({
     }),
     resetLayout: assign({
       layout: ({ context: { layout } }): Layout => makeLayout(layout.config),
+      zoom: () => 0,
     }),
     expand: assign({
       layout: ({ context: { layout, expand } }, { n }: { n: number }): Layout =>
@@ -307,9 +308,9 @@ export const pointerMachine = setup({
       touches: () => ({
         vecs: new Map(),
         points: [],
-        dists: [],
-        zoom: null,
         focus: null,
+        dists: [],
+        z: null,
       }),
       focus: ({ context: { touches, focus } }) =>
         touches.focus !== null ? touches.focus : focus,
@@ -330,9 +331,9 @@ export const pointerMachine = setup({
     touches: {
       vecs: new Map(),
       points: [],
-      dists: [],
-      zoom: null,
       focus: null,
+      dists: [],
+      z: null,
     },
     drag: null,
     animation: null,

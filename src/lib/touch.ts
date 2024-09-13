@@ -1,11 +1,6 @@
 import { ReadonlyDeep } from 'type-fest'
 import { dist } from './vec/dist'
-import { VecVec as Vec, vecInterpolate, vecMidpoint } from './vec/prefixed'
-
-export interface Zoom {
-  p: Vec
-  dir: number
-}
+import { VecVec as Vec, vecMidpoint } from './vec/prefixed'
 
 type Vecs = ReadonlyDeep<Map<number, Vec[]>>
 type VecsEntry = ReadonlyDeep<[number, Vec[]]>
@@ -16,15 +11,15 @@ export type Touches = ReadonlyDeep<{
   points: Vec[]
   focus: null | Vec
   dists: number[]
-  zoom: null | Zoom
+  z: null | number
 }>
 
-function calcZoom(dists: Readonly<number[]>, p: Vec): null | Zoom {
+function calcZoom(dists: Readonly<number[]>): null | number {
   if (dists.length >= 3) {
     const [d0, d1, d2] = dists
-    const dir = d0 < d1 && d1 < d2 ? -1 : d0 > d1 && d1 > d2 ? 1 : 0
-    if (dir !== 0) {
-      return { p, dir }
+    const z = d0 < d1 && d1 < d2 ? -1 : d0 > d1 && d1 > d2 ? 1 : 0
+    if (z !== 0) {
+      return z
     }
   }
   return null
@@ -98,18 +93,18 @@ export function handleTouchMove(
   )
   const points = vecsToPoints(vecs)
   const focus = pointsToFocus(points)
-  if (pqs.size < 2) {
+  if (points.length < 2 || focus === null) {
     return { ...touches, vecs, points, focus }
   }
-  const [p, q] = [...pqs.values()]
+  const [p, q] = points
   const dists = updateDists(touches.dists, dist(p, q), limit)
-  const zoom = calcZoom(dists, vecInterpolate(p, q, 0.5))
+  const z = calcZoom(dists)
   return {
     vecs,
     points,
     focus,
     dists,
-    zoom,
+    z,
   }
 }
 
@@ -128,7 +123,7 @@ export function handleTouchEnd(
     points,
     focus,
     dists: vecs.size === 0 ? [] : touches.dists,
-    zoom: vecs.size === 0 ? null : touches.zoom,
+    z: vecs.size === 0 ? null : touches.z,
   }
 }
 
