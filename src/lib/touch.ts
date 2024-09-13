@@ -10,8 +10,11 @@ import { dist } from './vec/dist'
 import { VecVec as Vec, vecMidpoint } from './vec/prefixed'
 
 const vecsWitherable = ReadonlyMap.getWitherable(Number.Ord)
-const vecsSemigroup = ReadonlyArray.getSemigroup<Vec>()
-const vecsMonoid = ReadonlyMap.getMonoid(Number.Eq, vecsSemigroup)
+const vecsFilterableWithIndex = ReadonlyMap.getFilterableWithIndex<number>()
+const vecsMonoid = ReadonlyMap.getMonoid(
+  Number.Eq,
+  ReadonlyArray.getSemigroup<Vec>()
+)
 
 type VecsEntry = ReadonlyDeep<[number, Vec[]]>
 type VecsEntries = ReadonlyDeep<VecsEntry[]>
@@ -70,7 +73,7 @@ export function handleTouchStart(
   touches: Touches,
   ev: Readonly<TouchEvent>
 ): Touches {
-  const entries: Vecs = new Map(changesToEntries(ev))
+  const entries: Vecs = changesToVecs(ev)
   const vecs: Vecs = vecsMonoid.concat(touches.vecs, entries)
   const points = vecsToPoints(vecs)
   const focus = pointsToFocus(points)
@@ -104,15 +107,12 @@ export function handleTouchMove(
   }
 }
 
-const vecsGetFilterableWithIndex = ReadonlyMap.getFilterableWithIndex<number>()
-const vecsFilterMapWithIndex = vecsGetFilterableWithIndex.filterMapWithIndex
-
 export function handleTouchEnd(
   touches: Touches,
   ev: Readonly<TouchEvent>
 ): Touches {
   const changes = changesToVecs(ev)
-  const vecs: Vecs = vecsFilterMapWithIndex(
+  const vecs: Vecs = vecsFilterableWithIndex.filterMapWithIndex(
     touches.vecs,
     (k: number, v: ReadonlyDeep<Vec[]>) =>
       changes.has(k) ? Option.none : Option.some(v)
