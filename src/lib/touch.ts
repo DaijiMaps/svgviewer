@@ -41,7 +41,7 @@ function updateDists(
 }
 
 export function vecsToPoints(vecs: Vecs): Readonly<Vec[]> {
-  return [...vecs.values()].flatMap((vs: Readonly<Vec[]>) =>
+  return Array.from(vecs.values()).flatMap((vs: Readonly<Vec[]>) =>
     vs.length === 0 ? [] : [vs[0]]
   )
 }
@@ -54,11 +54,11 @@ export function handleTouchStart(
   touches: Touches,
   ev: Readonly<TouchEvent>
 ): Touches {
-  const entries: VecsEntries = [...ev.changedTouches].map((t) => [
+  const entries: VecsEntries = Array.from(ev.changedTouches).map((t) => [
     t.identifier,
     [{ x: t.clientX, y: t.clientY }],
   ])
-  const vecs: Vecs = new Map([...touches.vecs.entries(), ...entries])
+  const vecs: Vecs = new Map(entries.concat(Array.from(touches.vecs.entries())))
   const points = vecsToPoints(vecs)
   const focus = pointsToFocus(points)
   return { ...touches, vecs, points, focus }
@@ -70,23 +70,13 @@ export function handleTouchMove(
   limit: number
 ): Touches {
   const pqs = new Map(
-    [...ev.changedTouches].flatMap((t) => {
-      const vs = touches.vecs.get(t.identifier)
-      if (vs === undefined || vs.length === 0) {
-        return []
-      }
-      const prev = vs[0]
+    Array.from(ev.changedTouches).map((t) => {
       const v = { x: t.clientX, y: t.clientY }
-      const vd = dist(prev, v)
-      // XXX limit
-      if (vd < limit / 10) {
-        return []
-      }
-      return [[t.identifier, v]]
+      return [t.identifier, v]
     })
   )
   const vecs: Vecs = new Map(
-    [...touches.vecs.entries()].map(([id, vs]) => {
+    Array.from(touches.vecs.entries()).map(([id, vs]) => {
       const v = pqs.get(id)
       return v !== undefined ? [id, [v, ...vs]] : [id, vs]
     })
@@ -112,9 +102,9 @@ export function handleTouchEnd(
   touches: Touches,
   ev: Readonly<TouchEvent>
 ): Touches {
-  const ids = new Set([...ev.changedTouches].map((t) => t.identifier))
+  const ids = new Set(Array.from(ev.changedTouches).map((t) => t.identifier))
   const vecs = new Map(
-    [...touches.vecs.entries()].filter(([id]) => !ids.has(id))
+    Array.from(touches.vecs.entries()).filter(([id]) => !ids.has(id))
   )
   const points = vecsToPoints(vecs)
   const focus = pointsToFocus(points)
