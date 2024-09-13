@@ -32,7 +32,11 @@ export const Viewer = (props: PropsWithChildren) => {
       </Container>
       <Guides _layout={layout} _focus={focus} _touches={touches} />
       {pointer.context.debug && (
-        <Debug _pointer={pointer} _container={containerRef.current} />
+        <Debug
+          _container={containerRef.current}
+          _pointer={pointer}
+          _touches={touches}
+        />
       )}
       <style>
         {dragStyle(pointer)}

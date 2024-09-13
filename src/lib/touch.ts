@@ -28,24 +28,27 @@ export type Touches = ReadonlyDeep<{
   z: null | number
 }>
 
-function calcZoom([d0, d1, d2]: Readonly<number[]>): null | number {
-  return isUndefined(d0) || isUndefined(d1) || isUndefined(d2)
+function calcZoom([d0, d1, d2, d3]: Readonly<number[]>): null | number {
+  return isUndefined(d0) ||
+    isUndefined(d1) ||
+    isUndefined(d2) ||
+    isUndefined(d3)
     ? null
-    : d0 < d1 && d1 < d2 // zoom-in
+    : d0 < d1 && d1 < d2 && d2 < d3 // zoom-in
       ? -1
-      : d0 > d1 && d1 > d2 // zoom-out
+      : d0 > d1 && d1 > d2 && d2 > d3 // zoom-out
         ? 1
         : null
 }
 
 function updateDists(
   dists: Readonly<number[]>,
-  dd: number,
+  d: number,
   limit: number
 ): Readonly<number[]> {
-  const prev = dists.length > 0 ? dists[0] : dd
-  const l = Math.pow(prev - dd, 2)
-  return dists.length === 0 || l > limit / 10 ? [dd, ...dists] : dists
+  const prev = dists.length > 0 ? dists[0] : d
+  const l = Math.pow(prev - d, 2)
+  return dists.length === 0 || l > limit / 10 ? [d, ...dists] : dists
 }
 
 export function vecsToPoints(vecs: Vecs): Readonly<Vec[]> {
@@ -114,7 +117,7 @@ export function handleTouchEnd(
   const vecs: Vecs = vecsFilterableWithIndex.filterMapWithIndex(
     touches.vecs,
     (k: number, v: ReadonlyDeep<Vec[]>) =>
-      // IDs in TouchEnd changedTouches => deleted IDs
+      // IDs in TouchEnd changedTouches => disappearing IDs
       changes.has(k) ? Option.none : Option.some(v)
   )
   const points = vecsToPoints(vecs)

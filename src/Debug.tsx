@@ -1,14 +1,17 @@
 import './Debug.css'
 import { showBox, showNumber, showPoint } from './lib/show'
+import { Touches } from './lib/touch'
+import { ifNullOr } from './lib/utils'
 import { PointerState } from './lib/xstate-pointer'
 
 interface DebugProps {
-  _pointer: PointerState
   _container: null | HTMLDivElement
+  _pointer: PointerState
+  _touches: Touches
 }
 
 export const Debug = (props: DebugProps) => {
-  const { _pointer: pointer, _container: container } = props
+  const { _container: container, _pointer: pointer, _touches: touches } = props
   const {
     context: { layout },
   } = pointer
@@ -44,6 +47,8 @@ export const Debug = (props: DebugProps) => {
         <li>layout.svgOffset: {showPoint(layout.svgOffset)}</li>
         <li>layout.svgScale: {showNumber(layout.svgScale.s)}</li>
         <li>layout.svg: {showBox(layout.svg)}</li>
+        <li>touches.dists: {touches.dists.map(showNumber).join(' ')}</li>
+        <li>touches.z: {showNumber(ifNullOr(touches.z, 0))}</li>
         {/*
         <li>layout.config.container: {showBox(layout.config.container)}</li>
         <li>layout.config.svg: {showBox(layout.config.svg)}</li>

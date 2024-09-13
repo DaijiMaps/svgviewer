@@ -857,11 +857,17 @@ export const pointerMachine = setup({
         Active: {
           entry: [raise({ type: 'TOUCH' })],
           on: {
-            'TOUCH.MOVE.DONE': {
-              guard: and(['touching', 'isTouchZooming']),
-              actions: ['zoomTouches', 'startZoom', 'resetTouches'],
-              target: 'Animating',
-            },
+            'TOUCH.MOVE.DONE': [
+              {
+                guard: not('touching'),
+                target: 'Done',
+              },
+              {
+                guard: and(['touching', 'isTouchZooming']),
+                actions: ['zoomTouches', 'startZoom', 'resetTouches'],
+                target: 'Animating',
+              },
+            ],
             'TOUCH.END.DONE': {
               guard: and(['isMultiTouchEnding']),
               actions: ['resetTouches'],
