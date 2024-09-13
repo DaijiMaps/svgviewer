@@ -847,6 +847,11 @@ export const pointerMachine = setup({
       states: {
         Inactive: {
           on: {
+            'TOUCH.START.DONE': {
+              guard: and(['isMultiTouch']),
+              actions: raise({ type: 'DRAG.CANCEL' }),
+              target: 'Active',
+            },
             'TOUCH.MOVE.DONE': {
               guard: and(['isMultiTouch']),
               actions: raise({ type: 'DRAG.CANCEL' }),
