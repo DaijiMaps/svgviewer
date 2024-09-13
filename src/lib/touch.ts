@@ -50,14 +50,19 @@ function pointsToFocus(points: Readonly<Vec[]>): null | Vec {
   return points.length < 2 ? null : vecMidpoint(points)
 }
 
+function changesToEntries(ev: ReadonlyDeep<TouchEvent>): VecsEntries {
+  return Array.from(ev.changedTouches).map((t) => [
+    t.identifier,
+    [{ x: t.clientX, y: t.clientY }],
+  ])
+}
+
 export function handleTouchStart(
   touches: Touches,
   ev: Readonly<TouchEvent>
 ): Touches {
-  const entries: VecsEntries = Array.from(ev.changedTouches).map((t) => [
-    t.identifier,
-    [{ x: t.clientX, y: t.clientY }],
-  ])
+  const entries: VecsEntries = changesToEntries(ev)
+  // XXX Map.concat
   const vecs: Vecs = new Map(entries.concat(Array.from(touches.vecs.entries())))
   const points = vecsToPoints(vecs)
   const focus = pointsToFocus(points)
@@ -69,16 +74,12 @@ export function handleTouchMove(
   ev: Readonly<TouchEvent>,
   limit: number
 ): Touches {
-  const pqs = new Map(
-    Array.from(ev.changedTouches).map((t) => {
-      const v = { x: t.clientX, y: t.clientY }
-      return [t.identifier, v]
-    })
-  )
+  const changes = new Map(changesToEntries(ev))
   const vecs: Vecs = new Map(
-    Array.from(touches.vecs.entries()).map(([id, vs]) => {
-      const v = pqs.get(id)
-      return v !== undefined ? [id, [v, ...vs]] : [id, vs]
+    // XXX Map.map
+    Array.from(touches.vecs.entries()).map(([id, ovs]) => {
+      const vs = changes.get(id)
+      return vs !== undefined ? [id, [...vs, ...ovs]] : [id, ovs]
     })
   )
   const points = vecsToPoints(vecs)
@@ -102,9 +103,10 @@ export function handleTouchEnd(
   touches: Touches,
   ev: Readonly<TouchEvent>
 ): Touches {
-  const ids = new Set(Array.from(ev.changedTouches).map((t) => t.identifier))
+  const changes = new Map(changesToEntries(ev))
   const vecs = new Map(
-    Array.from(touches.vecs.entries()).filter(([id]) => !ids.has(id))
+    // XXX Map.filter
+    Array.from(touches.vecs.entries()).filter(([id]) => !changes.has(id))
   )
   const points = vecsToPoints(vecs)
   const focus = pointsToFocus(points)
