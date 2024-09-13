@@ -73,8 +73,7 @@ export function handleTouchStart(
   touches: Touches,
   ev: Readonly<TouchEvent>
 ): Touches {
-  const entries: Vecs = changesToVecs(ev)
-  const vecs: Vecs = vecsMonoid.concat(touches.vecs, entries)
+  const vecs: Vecs = vecsMonoid.concat(touches.vecs, changesToVecs(ev))
   const points = vecsToPoints(vecs)
   const focus = pointsToFocus(points)
   return { ...touches, vecs, points, focus }
@@ -88,7 +87,7 @@ export function handleTouchMove(
   const changes = changesToVecs(ev)
   const vecs = vecsWitherable.mapWithIndex(touches.vecs, (id, ovs) => {
     const nvs = changes.get(id)
-    return nvs !== undefined ? [...nvs, ...ovs] : ovs
+    return nvs !== undefined ? ReadonlyArray.concat(ovs)(nvs) : ovs
   })
   const points = vecsToPoints(vecs)
   const focus = pointsToFocus(points)
@@ -115,6 +114,7 @@ export function handleTouchEnd(
   const vecs: Vecs = vecsFilterableWithIndex.filterMapWithIndex(
     touches.vecs,
     (k: number, v: ReadonlyDeep<Vec[]>) =>
+      // IDs in TouchEnd changedTouches => deleted IDs
       changes.has(k) ? Option.none : Option.some(v)
   )
   const points = vecsToPoints(vecs)
