@@ -1,4 +1,4 @@
-import { pipe } from 'effect'
+import { pipe } from 'fp-ts/lib/function'
 import { expect, test } from 'vitest'
 import { animationEndLayout, animationMove, animationZoom } from './animation'
 import { BoxBox as Box, boxCenter, boxScaleAt } from './box/prefixed'

@@ -1,6 +1,6 @@
 //// boxTransform
 
-import { pipe } from 'effect'
+import { pipe } from 'fp-ts/lib/function'
 import { apply, Matrix } from '../matrix'
 import { Box, mapF } from './main'
 import { fromTlBr, tlBrFromB, tlBrToB, toTlBr } from './tlbr'

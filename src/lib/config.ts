@@ -30,6 +30,16 @@ const origViewBox: Box = boxScaleAt(
 
 const layoutConfig = configLayout(FONT_SIZE, origViewBox)
 
+// XXX
+// XXX
+// XXX
+const DRAG_STEP_ALPHA = 0.2
+const DRAG_STEP_LIMIT = 10
+const DRAG_STEP_MAX_COUNT = 100
+// XXX
+// XXX
+// XXX
+
 export const config = {
   FONT_SIZE,
   ANIMATION_DURATION,
@@ -38,4 +48,7 @@ export const config = {
   VIEWBOX,
   origViewBox,
   layoutConfig,
+  DRAG_STEP_ALPHA,
+  DRAG_STEP_LIMIT,
+  DRAG_STEP_MAX_COUNT,
 }

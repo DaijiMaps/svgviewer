@@ -1,11 +1,19 @@
+import * as Number from 'fp-ts/lib/number'
+import * as Option from 'fp-ts/lib/Option'
+import * as ROA from 'fp-ts/lib/ReadonlyArray'
+import * as ROM from 'fp-ts/lib/ReadonlyMap'
 import { ReadonlyDeep } from 'type-fest'
 import { isUndefined } from './utils'
 import { dist } from './vec/dist'
 import { VecVec as Vec, vecMidpoint } from './vec/prefixed'
 
-type Vecs = ReadonlyDeep<Map<number, Vec[]>>
+const vecsWitherable = ROM.getWitherable(Number.Ord)
+const vecsSemigroup = ROA.getSemigroup<Vec>()
+const vecsMonoid = ROM.getMonoid(Number.Eq, vecsSemigroup)
+
 type VecsEntry = ReadonlyDeep<[number, Vec[]]>
 type VecsEntries = ReadonlyDeep<VecsEntry[]>
+type Vecs = ReadonlyDeep<Map<number, Vec[]>>
 
 export type Touches = ReadonlyDeep<{
   vecs: Vecs
@@ -52,13 +60,16 @@ function changesToEntries(ev: ReadonlyDeep<TouchEvent>): VecsEntries {
   ])
 }
 
+function changesToVecs(ev: ReadonlyDeep<TouchEvent>): Vecs {
+  return new Map(changesToEntries(ev))
+}
+
 export function handleTouchStart(
   touches: Touches,
   ev: Readonly<TouchEvent>
 ): Touches {
-  const entries: VecsEntries = changesToEntries(ev)
-  // XXX Map.concat
-  const vecs: Vecs = new Map(entries.concat(Array.from(touches.vecs.entries())))
+  const entries: Vecs = new Map(changesToEntries(ev))
+  const vecs: Vecs = vecsMonoid.concat(touches.vecs, entries)
   const points = vecsToPoints(vecs)
   const focus = pointsToFocus(points)
   return { ...touches, vecs, points, focus }
@@ -69,14 +80,11 @@ export function handleTouchMove(
   ev: Readonly<TouchEvent>,
   limit: number
 ): Touches {
-  const changes = new Map(changesToEntries(ev))
-  const vecs: Vecs = new Map(
-    // XXX Map.merge
-    Array.from(touches.vecs.entries()).map(([id, ovs]) => {
-      const vs = changes.get(id)
-      return vs !== undefined ? [id, [...vs, ...ovs]] : [id, ovs]
-    })
-  )
+  const changes = changesToVecs(ev)
+  const vecs = vecsWitherable.mapWithIndex(touches.vecs, (id, ovs) => {
+    const nvs = changes.get(id)
+    return nvs !== undefined ? [...nvs, ...ovs] : ovs
+  })
   const points = vecsToPoints(vecs)
   const focus = pointsToFocus(points)
   if (points.length < 2 || focus === null) {
@@ -94,14 +102,18 @@ export function handleTouchMove(
   }
 }
 
+const vecsGetFilterableWithIndex = ROM.getFilterableWithIndex<number>()
+const vecsFilterMapWithIndex = vecsGetFilterableWithIndex.filterMapWithIndex
+
 export function handleTouchEnd(
   touches: Touches,
   ev: Readonly<TouchEvent>
 ): Touches {
-  const changes = new Map(changesToEntries(ev))
-  const vecs = new Map(
-    // XXX Map.filter
-    Array.from(touches.vecs.entries()).filter(([id]) => !changes.has(id))
+  const changes = changesToVecs(ev)
+  const vecs: Vecs = vecsFilterMapWithIndex(
+    touches.vecs,
+    (k: number, v: ReadonlyDeep<Vec[]>) =>
+      changes.has(k) ? Option.none : Option.some(v)
   )
   const points = vecsToPoints(vecs)
   const focus = pointsToFocus(points)

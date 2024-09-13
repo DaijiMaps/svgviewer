@@ -1,18 +1,9 @@
 import { ActorRefFrom, AnyActorRef, assign, sendTo, setup } from 'xstate'
 import { BoxBox as Box } from './box/prefixed'
+import { config } from './config'
 import { isDefined, isNotNull } from './utils'
 import { vecInterpolate } from './vec/prefixed'
 import { animationFrameLogic } from './xstate-animation-frame'
-
-// XXX
-// XXX
-// XXX
-const ALPHA = 0.2
-const LIMIT = 10
-const MAX_COUNT = 100
-// XXX
-// XXX
-// XXX
 
 export type StepInput = {
   parent: AnyActorRef
@@ -117,9 +108,9 @@ export const stepMachine = setup({
   context: ({ input: { parent, cb, alpha, limit, maxCount } }) => ({
     parent,
     cb,
-    alpha: isDefined(alpha) ? alpha : ALPHA,
-    limit: isDefined(limit) ? limit : LIMIT,
-    maxCount: isDefined(maxCount) ? maxCount : MAX_COUNT,
+    alpha: isDefined(alpha) ? alpha : config.DRAG_STEP_ALPHA,
+    limit: isDefined(limit) ? limit : config.DRAG_STEP_LIMIT,
+    maxCount: isDefined(maxCount) ? maxCount : config.DRAG_STEP_MAX_COUNT,
     P: null,
     Q: null,
     count: 0,

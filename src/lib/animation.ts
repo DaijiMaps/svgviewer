@@ -1,4 +1,4 @@
-import { pipe } from 'effect'
+import { pipe } from 'fp-ts/lib/function'
 import { ReadonlyDeep } from 'type-fest'
 import { Box } from './box'
 import { boxMove, boxScaleAt } from './box/prefixed'

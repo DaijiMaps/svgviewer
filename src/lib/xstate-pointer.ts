@@ -510,7 +510,7 @@ export const pointerMachine = setup({
         },
         Touching: {
           on: {
-            ANIMATION: { target: 'Animating' },
+            //ANIMATION: { target: 'Animating' },
             'TOUCH.DONE': { target: 'Idle' },
           },
         },

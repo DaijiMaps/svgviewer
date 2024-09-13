@@ -1,4 +1,4 @@
-import { pipe } from 'effect'
+import { pipe } from 'fp-ts/lib/function'
 import { expect, test } from 'vitest'
 import { divF } from './div'
 import { vec } from './index'
