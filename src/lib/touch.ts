@@ -1,4 +1,5 @@
 import { ReadonlyDeep } from 'type-fest'
+import { isUndefined } from './utils'
 import { dist } from './vec/dist'
 import { VecVec as Vec, vecMidpoint } from './vec/prefixed'
 
@@ -14,15 +15,14 @@ export type Touches = ReadonlyDeep<{
   z: null | number
 }>
 
-function calcZoom(dists: Readonly<number[]>): null | number {
-  if (dists.length >= 3) {
-    const [d0, d1, d2] = dists
-    const z = d0 < d1 && d1 < d2 ? -1 : d0 > d1 && d1 > d2 ? 1 : 0
-    if (z !== 0) {
-      return z
-    }
-  }
-  return null
+function calcZoom([d0, d1, d2]: Readonly<number[]>): null | number {
+  return isUndefined(d0) || isUndefined(d1) || isUndefined(d2)
+    ? null
+    : d0 < d1 && d1 < d2 // zoom-in
+      ? -1
+      : d0 > d1 && d1 > d2 // zoom-out
+        ? 1
+        : null
 }
 
 function updateDists(
@@ -32,12 +32,7 @@ function updateDists(
 ): Readonly<number[]> {
   const prev = dists.length > 0 ? dists[0] : dd
   const l = Math.pow(prev - dd, 2)
-  // XXX limit
-  if (dists.length === 0 || l > limit / 10) {
-    return [dd, ...dists]
-  } else {
-    return dists
-  }
+  return dists.length === 0 || l > limit / 10 ? [dd, ...dists] : dists
 }
 
 export function vecsToPoints(vecs: Vecs): Readonly<Vec[]> {
@@ -76,7 +71,7 @@ export function handleTouchMove(
 ): Touches {
   const changes = new Map(changesToEntries(ev))
   const vecs: Vecs = new Map(
-    // XXX Map.map
+    // XXX Map.merge
     Array.from(touches.vecs.entries()).map(([id, ovs]) => {
       const vs = changes.get(id)
       return vs !== undefined ? [id, [...vs, ...ovs]] : [id, ovs]
@@ -120,17 +115,7 @@ export function handleTouchEnd(
 }
 
 export function isMultiTouch(touches: Touches): boolean {
-  if (touches.vecs.size < 2) {
-    return false
-  }
-  const [ps, qs] = touches.vecs.values()
-  return (
-    ps !== undefined && ps.length !== 0 && qs !== undefined && qs.length !== 0
-  )
-}
-
-export function isNotMultiTouch(touches: Touches): boolean {
-  return touches.vecs.size < 2
+  return touches.vecs.size >= 2
 }
 
 export function isMultiTouchEnding(touches: Touches): boolean {
