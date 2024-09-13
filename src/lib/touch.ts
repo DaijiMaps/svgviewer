@@ -1,15 +1,17 @@
-import * as Number from 'fp-ts/lib/number'
-import * as Option from 'fp-ts/lib/Option'
-import * as ROA from 'fp-ts/lib/ReadonlyArray'
-import * as ROM from 'fp-ts/lib/ReadonlyMap'
+import {
+  number as Number,
+  option as Option,
+  readonlyArray as ReadonlyArray,
+  readonlyMap as ReadonlyMap,
+} from 'fp-ts'
 import { ReadonlyDeep } from 'type-fest'
 import { isUndefined } from './utils'
 import { dist } from './vec/dist'
 import { VecVec as Vec, vecMidpoint } from './vec/prefixed'
 
-const vecsWitherable = ROM.getWitherable(Number.Ord)
-const vecsSemigroup = ROA.getSemigroup<Vec>()
-const vecsMonoid = ROM.getMonoid(Number.Eq, vecsSemigroup)
+const vecsWitherable = ReadonlyMap.getWitherable(Number.Ord)
+const vecsSemigroup = ReadonlyArray.getSemigroup<Vec>()
+const vecsMonoid = ReadonlyMap.getMonoid(Number.Eq, vecsSemigroup)
 
 type VecsEntry = ReadonlyDeep<[number, Vec[]]>
 type VecsEntries = ReadonlyDeep<VecsEntry[]>
@@ -102,7 +104,7 @@ export function handleTouchMove(
   }
 }
 
-const vecsGetFilterableWithIndex = ROM.getFilterableWithIndex<number>()
+const vecsGetFilterableWithIndex = ReadonlyMap.getFilterableWithIndex<number>()
 const vecsFilterMapWithIndex = vecsGetFilterableWithIndex.filterMapWithIndex
 
 export function handleTouchEnd(
