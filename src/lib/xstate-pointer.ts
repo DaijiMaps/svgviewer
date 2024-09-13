@@ -55,7 +55,6 @@ export type PointerContext = {
   expand: number
   z: number
   zoom: number
-  nextZoom: number
   touches: Touches
   drag: null | Drag
   animation: null | Animation
@@ -235,15 +234,17 @@ export const pointerMachine = setup({
         touches.zoom === null ? focus : touches.zoom.p,
     }),
     startZoom: assign({
-      animation: ({ context: { layout, focus, z } }): null | Animation =>
-        animationZoom(layout, z, focus),
+      animation: ({ context: { layout, focus, z, zoom } }): null | Animation =>
+        animationZoom(layout, zoom, z, focus),
       z: () => 0,
-      nextZoom: ({ context: { zoom, z } }): number => zoom + z,
     }),
     endAnimation: assign({
       layout: ({ context: { layout, animation } }): Layout =>
         animation === null ? layout : animationEndLayout(layout, animation),
-      zoom: ({ context: { nextZoom } }): number => nextZoom,
+      zoom: ({ context: { animation, zoom } }): number =>
+        animation === null || animation.zoom === null
+          ? zoom
+          : animation.zoom.zoom,
     }),
     recenterLayout: assign({
       layout: ({ context: { layout, drag } }): Layout =>
@@ -326,7 +327,6 @@ export const pointerMachine = setup({
     expand: 1,
     z: 0,
     zoom: 0,
-    nextZoom: 0,
     touches: {
       vecs: new Map(),
       points: [],

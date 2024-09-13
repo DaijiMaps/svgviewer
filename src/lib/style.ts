@@ -31,22 +31,19 @@ export function moveStyle(pointer: Readonly<PointerState>) {
 
   const d = vecSub(ifNullOr(animation.move, layout.scroll), layout.scroll)
 
-  const moveStyle =
-    d.x === 0 && d.y === 0
-      ? ``
-      : `
+  return d.x === 0 && d.y === 0
+    ? ``
+    : `
 .svg {
   will-change: transform;
   animation: move ${config.ANIMATION_DURATION}ms ease;
 }
 ${moveKeyFrames(d)}
 `
-
-  return moveStyle
 }
 
 export function zoomStyle(pointer: Readonly<PointerState>) {
-  const { layout, focus, zoom, nextZoom, animation } = pointer.context
+  const { layout, focus, zoom, animation } = pointer.context
 
   if (!pointer.matches({ Animator: 'Animating' })) {
     return ''
@@ -56,12 +53,11 @@ export function zoomStyle(pointer: Readonly<PointerState>) {
     return ''
   }
 
-  const zd = nextZoom - zoom
+  const zd = animation.zoom.zoom - zoom
 
-  const zoomStyle =
-    zd === 0
-      ? ``
-      : `
+  return zd === 0
+    ? ``
+    : `
 .svg {
   will-change: transform;
   animation: zoomInOut ${config.ANIMATION_DURATION}ms ease;
@@ -71,8 +67,6 @@ ${zoomInOutKeyFrames(
   transformPoint(toMatrixOuter(layout), focus)
 )}
 `
-
-  return zoomStyle
 }
 
 export const moveKeyFrames = (d: Vec) => {

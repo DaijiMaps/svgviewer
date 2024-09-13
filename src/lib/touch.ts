@@ -102,7 +102,7 @@ export function handleTouchMove(
     return { ...touches, vecs, points, focus }
   }
   const [p, q] = [...pqs.values()]
-  const dists = updateDists(structuredClone(touches.dists), dist(p, q), limit)
+  const dists = updateDists(touches.dists, dist(p, q), limit)
   const zoom = calcZoom(dists, vecInterpolate(p, q, 0.5))
   return {
     vecs,

@@ -38,13 +38,13 @@ test('zoom layout', () => {
   expect(layout.svgScale.s).toBe(0.1)
   const l0 = pipe(
     layout,
-    (l) => animationZoom(l, 0, focus),
+    (l) => animationZoom(l, 0, 0, focus),
     (a) => animationEndLayout(layout, a)
   )
   expect(l0.svgScale.s).toBe(layout.svgScale.s)
   const l1 = pipe(
     layout,
-    (l) => animationZoom(l, 1, focus),
+    (l) => animationZoom(l, 0, 1, focus),
     (a) => animationEndLayout(layout, a)
   )
   expect(l1.svgScale.s / layout.svgScale.s).toBe(1 / 2)
@@ -188,9 +188,9 @@ test('move + zoom', () => {
   const d1 = dragStart(layout.scroll, focus)
   const d2 = dragMove(d1, vecVec(0, 0))
   const l2 = recenterLayout(layout, d2.start)
-  const a1 = animationZoom(l2, 1, focus)
+  const a1 = animationZoom(l2, 0, 1, focus)
   const l3 = animationEndLayout(l2, a1)
-  const a2 = animationZoom(l3, -1, focus)
+  const a2 = animationZoom(l3, 1, -1, focus)
   const l4 = animationEndLayout(l3, a2)
   const d5 = dragStart(l4.scroll, focus)
   const a6 = animationMove(d5, vecVec(-1, 0))

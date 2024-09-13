@@ -12,6 +12,7 @@ import { VecVec as Vec } from './vec/prefixed'
 export type AnimationZoom = ReadonlyDeep<{
   svg: Box
   svgScale: Scale
+  zoom: number
 }>
 
 export type Animation = ReadonlyDeep<{
@@ -28,6 +29,7 @@ export const animationMove = (drag: Drag, d: Vec): Animation => {
 
 export const animationZoom = (
   layout: Layout,
+  zoom: number,
   z: number,
   focus: Vec
 ): Animation => {
@@ -39,6 +41,7 @@ export const animationZoom = (
     zoom: {
       svg: boxScaleAt(layout.svg, s, o.x, o.y),
       svgScale: transformScale(layout.svgScale, s),
+      zoom: zoom + z,
     },
   }
 }
