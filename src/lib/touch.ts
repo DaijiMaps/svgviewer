@@ -100,16 +100,19 @@ export function handleTouchMove(
   limit: number
 ): Touches {
   const changes = changesToVecs(ev)
-  const vecs = vecsWitherable.mapWithIndex(touches.vecs, (id, ovs) => {
-    const nvs = changes.get(id)
-    return nvs !== undefined ? ReadonlyArray.concat(ovs)(nvs) : ovs
-  })
+  const vecs = vecsWitherable.mapWithIndex(touches.vecs, (id, ovs) =>
+    pipe(
+      changes.get(id),
+      Option.fromNullable,
+      Option.fold(() => ovs, ReadonlyArray.concat(ovs))
+    )
+  )
   const points = vecsToPoints(vecs)
   const focus = pointsToFocus(points)
-  if (points.length < 2 || focus === null) {
+  const [p, q] = points
+  if (focus === null || isUndefined(p) || isUndefined(q)) {
     return { ...touches, vecs, points, focus }
   }
-  const [p, q] = points
   const dists = updateDists(touches.dists, dist(p, q), limit)
   const z = calcZoom(dists)
   return {
