@@ -1,7 +1,6 @@
 import './Debug.css'
 import { showBox, showNumber, showPoint } from './lib/show'
 import { Touches } from './lib/touch'
-import { ifNullOr } from './lib/utils'
 import { PointerState } from './lib/xstate-pointer'
 
 interface DebugProps {
@@ -48,7 +47,7 @@ export const Debug = (props: DebugProps) => {
         <li>layout.svgScale: {showNumber(layout.svgScale.s)}</li>
         <li>layout.svg: {showBox(layout.svg)}</li>
         <li>touches.dists: {touches.dists.map(showNumber).join(' ')}</li>
-        <li>touches.z: {showNumber(ifNullOr(touches.z, 0))}</li>
+        <li>touches.z: {touches.z === null ? '-' : showNumber(touches.z)}</li>
         {/*
         <li>layout.config.container: {showBox(layout.config.container)}</li>
         <li>layout.config.svg: {showBox(layout.config.svg)}</li>

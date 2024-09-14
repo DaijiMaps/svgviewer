@@ -27,11 +27,13 @@ import {
   recenterLayout,
 } from './layout'
 import {
+  discardTouches,
   handleTouchEnd,
   handleTouchMove,
   handleTouchStart,
   isMultiTouch,
   isMultiTouchEnding,
+  resetTouches,
   Touches,
 } from './touch'
 import { VecVec as Vec, vecScale, vecVec } from './vec/prefixed'
@@ -245,6 +247,7 @@ export const pointerMachine = setup({
         animation === null || animation.zoom === null
           ? zoom
           : animation.zoom.zoom,
+      animation: () => null,
     }),
     recenterLayout: assign({
       layout: ({ context: { layout, drag } }): Layout =>
@@ -305,13 +308,12 @@ export const pointerMachine = setup({
         touches.focus !== null ? touches.focus : focus,
     }),
     resetTouches: assign({
-      touches: () => ({
-        vecs: new Map(),
-        points: [],
-        focus: null,
-        dists: [],
-        z: null,
-      }),
+      touches: () => resetTouches(),
+      focus: ({ context: { touches, focus } }) =>
+        touches.focus !== null ? touches.focus : focus,
+    }),
+    discardTouches: assign({
+      touches: ({ context: { touches } }) => discardTouches(touches),
       focus: ({ context: { touches, focus } }) =>
         touches.focus !== null ? touches.focus : focus,
     }),
@@ -820,16 +822,19 @@ export const pointerMachine = setup({
             raise({ type: 'TOUCH.START.DONE' }),
           ],
         },
-        'TOUCH.MOVE': {
-          actions: [
-            {
-              type: 'moveTouches',
-              params: ({ event }) => ({ ev: event.ev }),
-            },
-            'focusTouches',
-            raise({ type: 'TOUCH.MOVE.DONE' }),
-          ],
-        },
+        'TOUCH.MOVE': [
+          { guard: 'isZooming' },
+          {
+            actions: [
+              {
+                type: 'moveTouches',
+                params: ({ event }) => ({ ev: event.ev }),
+              },
+              'focusTouches',
+              raise({ type: 'TOUCH.MOVE.DONE' }),
+            ],
+          },
+        ],
         'TOUCH.END': {
           actions: [
             {
@@ -869,7 +874,7 @@ export const pointerMachine = setup({
               },
               {
                 guard: and(['touching', 'isTouchZooming']),
-                actions: ['zoomTouches', 'startZoom', 'resetTouches'],
+                actions: ['zoomTouches', 'startZoom', 'discardTouches'],
                 target: 'Animating',
               },
             ],
@@ -883,8 +888,18 @@ export const pointerMachine = setup({
         Animating: {
           entry: raise({ type: 'ANIMATION' }),
           on: {
-            'ANIMATION.DONE': {
-              target: 'Done',
+            'ANIMATION.DONE': [
+              {
+                guard: not('isMultiTouch'),
+                target: 'Done',
+              },
+              {
+                target: 'Active',
+              },
+            ],
+            'TOUCH.END.DONE': {
+              guard: and(['isMultiTouchEnding']),
+              actions: ['resetTouches'],
             },
           },
         },

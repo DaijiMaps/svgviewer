@@ -5,7 +5,7 @@ import {
   readonlyMap as ReadonlyMap,
 } from 'fp-ts'
 import { ReadonlyDeep } from 'type-fest'
-import { isUndefined } from './utils'
+import { isDefined, isUndefined } from './utils'
 import { dist } from './vec/dist'
 import { VecVec as Vec, vecMidpoint } from './vec/prefixed'
 
@@ -129,6 +129,30 @@ export function handleTouchEnd(
     dists: vecs.size === 0 ? [] : touches.dists,
     z: vecs.size === 0 ? null : touches.z,
   }
+}
+
+export function resetTouches(): Touches {
+  return {
+    vecs: new Map(),
+    points: [],
+    focus: null,
+    dists: [],
+    z: null,
+  }
+}
+
+export function discardTouches(touches: Touches): Touches {
+  const vecs = ReadonlyMap.map<ReadonlyDeep<Vec[]>, ReadonlyDeep<Vec[]>>(
+    (ovs) => {
+      const v = ovs[0]
+      return isDefined(v) ? [v] : []
+    }
+  )(touches.vecs)
+  /*
+  const points = vecsToPoints(vecs)
+  const focus = pointsToFocus(points)
+  */
+  return { ...touches, vecs, dists: [], z: null }
 }
 
 export function isMultiTouch(touches: Touches): boolean {
