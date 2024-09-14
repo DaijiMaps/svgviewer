@@ -2,6 +2,7 @@ import { add, addF } from './add'
 import { copy } from './copy'
 import { dist, qdist } from './dist'
 import { div, divF } from './div'
+import { compare, ord } from './fp-ts'
 import { interpolate, interpolateF } from './interpolate'
 import { one, vec, Vec, Vecs, zero } from './main'
 import { midpoint } from './midpoint'
@@ -16,6 +17,7 @@ export type { Vec, Vecs }
 export {
   add,
   addF,
+  compare,
   copy,
   dist,
   div,
@@ -28,6 +30,7 @@ export {
   mul,
   mulF,
   one,
+  ord,
   qdist,
   scale,
   scaleF,
