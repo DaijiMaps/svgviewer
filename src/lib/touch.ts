@@ -4,8 +4,9 @@ import {
   readonlyArray as ReadonlyArray,
   readonlyMap as ReadonlyMap,
 } from 'fp-ts'
+import { pipe } from 'fp-ts/lib/function'
 import { ReadonlyDeep } from 'type-fest'
-import { isDefined, isUndefined } from './utils'
+import { isUndefined } from './utils'
 import { dist } from './vec/dist'
 import { VecVec as Vec, vecMidpoint } from './vec/prefixed'
 
@@ -143,15 +144,16 @@ export function resetTouches(): Touches {
 
 export function discardTouches(touches: Touches): Touches {
   const vecs = ReadonlyMap.map<ReadonlyDeep<Vec[]>, ReadonlyDeep<Vec[]>>(
-    (ovs) => {
-      const v = ovs[0]
-      return isDefined(v) ? [v] : []
-    }
+    (ovs) =>
+      pipe(
+        ovs[0],
+        Option.fromNullable,
+        Option.fold(
+          () => [],
+          (v) => [v]
+        )
+      )
   )(touches.vecs)
-  /*
-  const points = vecsToPoints(vecs)
-  const focus = pointsToFocus(points)
-  */
   return { ...touches, vecs, dists: [], z: null }
 }
 
