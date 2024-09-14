@@ -1,10 +1,10 @@
 import { BoxBox as Box } from './box/prefixed'
 
-// eslint-disable-next-line functional/no-return-void, functional/prefer-immutable-types
-export const syncScroll = (e: null | HTMLElement, b: Box): void => {
+// eslint-disable-next-line functional/prefer-immutable-types
+export const syncScroll = (e: null | HTMLElement, b: Box): boolean => {
   // assume valid if scrollLeft exists
   if (e === null || e.scrollLeft === null || b === null) {
-    return
+    return false
   }
   // box pointing to the identical element?
   if (
@@ -12,12 +12,12 @@ export const syncScroll = (e: null | HTMLElement, b: Box): void => {
     Math.abs(e.scrollHeight - b.height) > 1
   ) {
     //console.log('syncScroll: wrong element size')
-    return
+    return false
   }
   const left = Math.round(-b.x)
   const top = Math.round(-b.y)
   if (left < 0 || top < 0) {
-    return
+    return false
   }
   //console.log("syncScroll", e.scrollLeft, e.scrollTop, "->", left, top);
   // eslint-disable-next-line functional/no-conditional-statements
@@ -30,4 +30,6 @@ export const syncScroll = (e: null | HTMLElement, b: Box): void => {
     // eslint-disable-next-line functional/no-expression-statements, functional/immutable-data
     e.scrollTop = top
   }
+
+  return true
 }

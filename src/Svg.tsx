@@ -9,7 +9,7 @@ interface SvgProps {
   onAnimationEnd?: React.AnimationEventHandler<SVGSVGElement>
 }
 
-export const Svg = (props: PropsWithChildren<SvgProps>) => {
+export const Svg = (props: Readonly<PropsWithChildren<SvgProps>>) => {
   const { _viewBox: viewBox } = props
   const { onAnimationEnd, width, height } = props
 

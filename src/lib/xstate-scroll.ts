@@ -45,8 +45,10 @@ export const scrollMachine = setup({
     events: {} as ScrollEvent,
   },
   actions: {
-    syncScroll: (_, { e, pos }: { e: null | HTMLDivElement; pos: Box }): void =>
-      syncScroll(e, pos),
+    syncScroll: (
+      _,
+      { e, pos }: { e: null | HTMLDivElement; pos: Box }
+    ): boolean => syncScroll(e, pos),
     startStep: sendTo(
       ({ system }) => system.get('step1'),
       (_, { P, Q }: { P: Box; Q: Box }) => ({ type: 'STEP.START', P, Q })

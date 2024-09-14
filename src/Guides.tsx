@@ -10,7 +10,7 @@ export interface GuidesProps {
   _touches: Touches
 }
 
-export function Guides(props: GuidesProps) {
+export function Guides(props: Readonly<GuidesProps>) {
   return (
     <svg className="guides">
       <Cursor

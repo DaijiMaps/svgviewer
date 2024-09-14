@@ -9,7 +9,7 @@ interface DebugProps {
   _touches: Touches
 }
 
-export const Debug = (props: DebugProps) => {
+export const Debug = (props: Readonly<DebugProps>) => {
   const { _container: container, _pointer: pointer, _touches: touches } = props
   const {
     context: { layout },

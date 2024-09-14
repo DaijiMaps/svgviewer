@@ -1,14 +1,23 @@
 import {
   number as Number,
   option as Option,
+  ord as Ord,
   readonlyArray as ReadonlyArray,
   readonlyMap as ReadonlyMap,
 } from 'fp-ts'
 import { pipe } from 'fp-ts/lib/function'
+import { Ordering } from 'fp-ts/lib/Ordering'
+import { Touch } from 'react'
 import { ReadonlyDeep } from 'type-fest'
 import { isUndefined } from './utils'
 import { dist } from './vec/dist'
 import { VecVec as Vec, vecMidpoint } from './vec/prefixed'
+
+const vecCompare = (a: Vec, b: Vec): Ordering =>
+  Number.Ord.compare(a.x, b.x) || Number.Ord.compare(a.y, b.y)
+const vecOrd = Ord.fromCompare(vecCompare)
+
+const vecsOrd = ReadonlyArray.getOrd<Vec>(vecOrd)
 
 const vecsWitherable = ReadonlyMap.getWitherable(Number.Ord)
 const vecsFilterableWithIndex = ReadonlyMap.getFilterableWithIndex<number>()
@@ -53,8 +62,12 @@ function updateDists(
 }
 
 export function vecsToPoints(vecs: Vecs): Readonly<Vec[]> {
-  return Array.from(vecs.values()).flatMap((vs: Readonly<Vec[]>) =>
-    vs.length === 0 ? [] : [vs[0]]
+  return pipe(
+    vecs,
+    ReadonlyMap.values(vecsOrd),
+    ReadonlyArray.filterMap((vs) =>
+      vs.length === 0 ? Option.none : Option.some(vs[0])
+    )
   )
 }
 
@@ -63,10 +76,14 @@ function pointsToFocus(points: Readonly<Vec[]>): null | Vec {
 }
 
 function changesToEntries(ev: ReadonlyDeep<TouchEvent>): VecsEntries {
-  return Array.from(ev.changedTouches).map((t) => [
-    t.identifier,
-    [{ x: t.clientX, y: t.clientY }],
-  ])
+  return pipe(
+    ev.changedTouches,
+    Array.from,
+    ReadonlyArray.map<Touch, [number, Vec[]]>((t) => [
+      t.identifier,
+      [{ x: t.clientX, y: t.clientY }],
+    ])
+  )
 }
 
 function changesToVecs(ev: ReadonlyDeep<TouchEvent>): Vecs {
@@ -89,10 +106,14 @@ export function handleTouchMove(
   limit: number
 ): Touches {
   const changes = changesToVecs(ev)
-  const vecs = vecsWitherable.mapWithIndex(touches.vecs, (id, ovs) => {
-    const nvs = changes.get(id)
-    return nvs !== undefined ? ReadonlyArray.concat(ovs)(nvs) : ovs
-  })
+  const vecs = vecsWitherable.mapWithIndex(touches.vecs, (id, ovs) =>
+    pipe(
+      id,
+      changes.get,
+      Option.fromNullable,
+      Option.fold(() => ovs, ReadonlyArray.concat(ovs))
+    )
+  )
   const points = vecsToPoints(vecs)
   const focus = pointsToFocus(points)
   if (points.length < 2 || focus === null) {

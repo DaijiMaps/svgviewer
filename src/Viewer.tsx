@@ -8,7 +8,7 @@ import { usePointer } from './lib/react-pointer'
 import { dragStyle, moveStyle, zoomStyle } from './lib/style'
 import { Svg } from './Svg'
 
-export const Viewer = (props: PropsWithChildren) => {
+export const Viewer = (props: Readonly<PropsWithChildren>) => {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const { pointer, pointerSend, layout, focus, touches } =
@@ -16,14 +16,11 @@ export const Viewer = (props: PropsWithChildren) => {
 
   return (
     <>
-      <Container
-        ref={containerRef}
-        _pointer={pointer}
-        _pointerSend={pointerSend}
-      >
+      <Container ref={containerRef}>
         <Svg
           width={layout.scroll.width}
           height={layout.scroll.height}
+          // eslint-disable-next-line functional/no-return-void
           onAnimationEnd={() => pointerSend({ type: 'ANIMATION.END' })}
           _viewBox={layout.svg}
         >

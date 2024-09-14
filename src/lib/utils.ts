@@ -36,16 +36,6 @@ export const ifNullOr = <A>(a: N | A, b: A): A => (isNotNull(a) ? a : b)
 export const ifUndefinedOrNullOr = <A>(a: U | N | A, b: A): A =>
   !isUndefinedOrNull(a) ? a : b
 
-//// timeoutPromise
-//// animationFramePromise
-
-export const timeoutPromise = (t: number) =>
-  // eslint-disable-next-line functional/no-return-void
-  new Promise<void>((resolve) => setTimeout(() => resolve(), t))
-export const animationframePromise = () =>
-  // eslint-disable-next-line functional/no-return-void
-  new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
-
 // https://www.npmjs.com/package/is-immutable-type
 
 export type ImmutableShallow<T extends object> = {
