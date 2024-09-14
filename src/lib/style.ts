@@ -33,11 +33,7 @@ export function moveStyle(pointer: Readonly<PointerState>) {
   const d = vecSub(ifNullOr(animation.move, layout.scroll), layout.scroll)
   const q = matrixTranslate(matrixEmpty, d)
 
-  return d.x === 0 && d.y === 0
-    ? ``
-    : `
-${keyFrames(q)}
-`
+  return d.x === 0 && d.y === 0 ? `` : css(q)
 }
 
 export function zoomStyle(pointer: Readonly<PointerState>) {
@@ -56,14 +52,10 @@ export function zoomStyle(pointer: Readonly<PointerState>) {
   const { x, y } = transformPoint(toMatrixOuter(layout), focus)
   const q = matrixScaleAt([s, s], [x, y])
 
-  return zd === 0
-    ? ``
-    : `
-${keyFrames(q)}
-`
+  return zd === 0 ? `` : css(q)
 }
 
-export const keyFrames = (q: Matrix) => {
+export const css = (q: Matrix) => {
   const p = matrixEmpty
 
   return `

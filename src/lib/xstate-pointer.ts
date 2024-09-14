@@ -257,6 +257,9 @@ export const pointerMachine = setup({
       layout: ({ context: { layout } }): Layout => makeLayout(layout.config),
       zoom: () => 0,
     }),
+    resetFocus: assign({
+      focus: ({ context: { layout } }): Vec => boxCenter(layout.container),
+    }),
     expand: assign({
       layout: ({ context: { layout, expand } }, { n }: { n: number }): Layout =>
         expandLayoutCenter(layout, n / expand),
@@ -359,7 +362,7 @@ export const pointerMachine = setup({
               },
             },
             'LAYOUT.RESET': {
-              actions: 'resetLayout',
+              actions: ['resetLayout', 'resetFocus'],
             },
             DEBUG: {
               actions: 'toggleDebug',
@@ -397,7 +400,7 @@ export const pointerMachine = setup({
                   type: 'shouldReset',
                   params: ({ event }) => ({ ev: event.ev }),
                 },
-                actions: 'resetLayout',
+                actions: ['resetLayout', 'resetFocus'],
               },
               {
                 guard: {
@@ -868,8 +871,8 @@ export const pointerMachine = setup({
               },
               {
                 guard: and(['touching', 'isTouchZooming']),
-                actions: ['zoomTouches', 'startZoom', 'discardTouches'],
-                target: 'Animating',
+                actions: ['zoomTouches'],
+                target: 'Zooming',
               },
             ],
             'TOUCH.END.DONE': {
@@ -878,6 +881,51 @@ export const pointerMachine = setup({
               target: 'Done',
             },
           },
+        },
+        Zooming: {
+          initial: 'Expanding',
+          onDone: 'Zoomed',
+          states: {
+            Expanding: {
+              entry: raise({ type: 'EXPAND', n: 3 }),
+              on: {
+                'EXPAND.DONE': {
+                  actions: ['startZoom', 'discardTouches'],
+                  target: 'Animating',
+                },
+              },
+            },
+            Animating: {
+              entry: raise({ type: 'ANIMATION' }),
+              on: {
+                'ANIMATION.DONE': {
+                  target: 'Unexpanding',
+                },
+              },
+            },
+            Unexpanding: {
+              entry: raise({ type: 'UNEXPAND' }),
+              on: {
+                'UNEXPAND.DONE': {
+                  target: 'Done',
+                },
+              },
+            },
+            Done: {
+              type: 'final',
+            },
+          },
+        },
+        Zoomed: {
+          always: [
+            {
+              guard: not('isMultiTouch'),
+              target: 'Done',
+            },
+            {
+              target: 'Active',
+            },
+          ],
         },
         Animating: {
           entry: raise({ type: 'ANIMATION' }),

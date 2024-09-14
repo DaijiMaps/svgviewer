@@ -51,7 +51,7 @@ test('zoom layout', () => {
   //expect(l1.zoom).toBe(1)
 })
 
-test('expand', () => {
+test('expand center', () => {
   const l1 = expandLayoutCenter(layout, 1)
   expect(l1).toStrictEqual(layout)
 })
@@ -85,6 +85,91 @@ test('expand 2', () => {
     height: 100,
   })
   expect(l2).toStrictEqual(layout)
+})
+
+test('expand + zoom', () => {
+  const containerU: Box = { x: 0, y: 0, width: 1, height: 1 }
+  const origViewBoxU: Box = { x: 0, y: 0, width: 1, height: 1 }
+
+  const configU = configLayout(16, origViewBoxU, containerU)
+  const layoutU = makeLayout(configU)
+  const focusU = boxCenter(containerU)
+
+  const l1 = expandLayoutCenter(layoutU, 2)
+  const a1 = animationZoom(l1, 0, 1, focusU)
+  const l2 = animationEndLayout(l1, a1)
+  const a2 = animationZoom(l2, 1, -1, focusU)
+  const l3 = animationEndLayout(l2, a2)
+  const l4 = expandLayoutCenter(l3, 1 / 2)
+
+  expect(l4).toStrictEqual(layoutU)
+})
+
+test('expand + zoom 2', () => {
+  const containerU: Box = { x: 0, y: 0, width: 1, height: 1 }
+  const origViewBoxU: Box = { x: 0, y: 0, width: 1, height: 1 }
+
+  const configU = configLayout(16, origViewBoxU, containerU)
+  const layoutU = makeLayout(configU)
+  const focusU = vecVec(0.25, 0.25)
+
+  const l1 = expandLayoutCenter(layoutU, 2)
+  const a1 = animationZoom(l1, 0, 1, focusU)
+  const l2 = animationEndLayout(l1, a1)
+  const a2 = animationZoom(l2, 1, -1, focusU)
+  const l3 = animationEndLayout(l2, a2)
+  const l4 = expandLayoutCenter(l3, 1 / 2)
+
+  expect(l4).toStrictEqual(layoutU)
+})
+
+test('expand + zoom 3', () => {
+  const res = pipe(
+    { l: layout, a: null, d: null },
+    ({ l, a, d }) => ({
+      l: expandLayoutCenter(l, 3),
+      a,
+      d,
+    }),
+    ({ l, d }) => ({
+      l,
+      a: animationZoom(l, 0, 1, focus),
+      d,
+    }),
+    ({ l, a, d }) => ({
+      l: animationEndLayout(l, a),
+      a,
+      d,
+    }),
+    ({ l, d }) => ({
+      l,
+      a: animationZoom(l, 1, -1, focus),
+      d,
+    }),
+    ({ l, a, d }) => ({
+      l: animationEndLayout(l, a),
+      a,
+      d,
+    }),
+    ({ l, a, d }) => ({
+      l: expandLayoutCenter(l, 1 / 3),
+      a,
+      d,
+    })
+  )
+  expect(layout).toStrictEqual({
+    ...res.l,
+    scroll: {
+      ...res.l.scroll,
+      x: expect.closeTo(0, 5),
+      y: expect.closeTo(0, 5),
+    },
+    svg: {
+      ...res.l.svg,
+      x: expect.closeTo(0, 5),
+      y: expect.closeTo(0, 5),
+    },
+  })
 })
 
 test('boxScale', () => {
