@@ -161,6 +161,7 @@ export const pointerMachine = setup({
       animation !== null && animation.move !== null,
     isZooming: ({ context: { animation } }) =>
       animation !== null && animation.zoom !== null,
+    isAnimating: ({ context: { animation } }) => animation !== null,
     idle: and([
       stateIn({ Pointer: 'Idle' }),
       stateIn({ Dragger: 'Inactive' }),
@@ -809,18 +810,21 @@ export const pointerMachine = setup({
     },
     TouchHandler: {
       on: {
-        'TOUCH.START': {
-          actions: [
-            {
-              type: 'startTouches',
-              params: ({ event }) => ({ ev: event.ev }),
-            },
-            'focusTouches',
-            raise({ type: 'TOUCH.START.DONE' }),
-          ],
-        },
+        'TOUCH.START': [
+          { guard: 'isAnimating' },
+          {
+            actions: [
+              {
+                type: 'startTouches',
+                params: ({ event }) => ({ ev: event.ev }),
+              },
+              'focusTouches',
+              raise({ type: 'TOUCH.START.DONE' }),
+            ],
+          },
+        ],
         'TOUCH.MOVE': [
-          { guard: 'isZooming' },
+          { guard: 'isAnimating' },
           {
             actions: [
               {
