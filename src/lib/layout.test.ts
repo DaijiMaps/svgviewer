@@ -87,40 +87,43 @@ test('expand 2', () => {
   expect(l2).toStrictEqual(layout)
 })
 
+const U = (() => {
+  const container: Box = { x: 0, y: 0, width: 1, height: 1 }
+  const origViewBox: Box = { x: 0, y: 0, width: 1, height: 1 }
+  const config = configLayout(16, origViewBox, container)
+  const layout = makeLayout(config)
+  const focus = boxCenter(container)
+  return {
+    container,
+    origViewBox,
+    config,
+    layout,
+    focus,
+  }
+})()
+
 test('expand + zoom', () => {
-  const containerU: Box = { x: 0, y: 0, width: 1, height: 1 }
-  const origViewBoxU: Box = { x: 0, y: 0, width: 1, height: 1 }
-
-  const configU = configLayout(16, origViewBoxU, containerU)
-  const layoutU = makeLayout(configU)
-  const focusU = boxCenter(containerU)
-
-  const l1 = expandLayoutCenter(layoutU, 2)
-  const a1 = animationZoom(l1, 0, 1, focusU)
+  const l1 = expandLayoutCenter(U.layout, 2)
+  const a1 = animationZoom(l1, 0, 1, U.focus)
   const l2 = animationEndLayout(l1, a1)
-  const a2 = animationZoom(l2, 1, -1, focusU)
+  const a2 = animationZoom(l2, 1, -1, U.focus)
   const l3 = animationEndLayout(l2, a2)
   const l4 = expandLayoutCenter(l3, 1 / 2)
 
-  expect(l4).toStrictEqual(layoutU)
+  expect(l4).toStrictEqual(U.layout)
 })
 
 test('expand + zoom 2', () => {
-  const containerU: Box = { x: 0, y: 0, width: 1, height: 1 }
-  const origViewBoxU: Box = { x: 0, y: 0, width: 1, height: 1 }
+  const focus = vecVec(0.25, 0.25)
 
-  const configU = configLayout(16, origViewBoxU, containerU)
-  const layoutU = makeLayout(configU)
-  const focusU = vecVec(0.25, 0.25)
-
-  const l1 = expandLayoutCenter(layoutU, 2)
-  const a1 = animationZoom(l1, 0, 1, focusU)
+  const l1 = expandLayoutCenter(U.layout, 2)
+  const a1 = animationZoom(l1, 0, 1, focus)
   const l2 = animationEndLayout(l1, a1)
-  const a2 = animationZoom(l2, 1, -1, focusU)
+  const a2 = animationZoom(l2, 1, -1, focus)
   const l3 = animationEndLayout(l2, a2)
   const l4 = expandLayoutCenter(l3, 1 / 2)
 
-  expect(l4).toStrictEqual(layoutU)
+  expect(l4).toStrictEqual(U.layout)
 })
 
 test('expand + zoom 3', () => {
