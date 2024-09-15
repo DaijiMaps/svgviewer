@@ -1,7 +1,7 @@
 import { RefObject } from 'react'
 import { ActorRefFrom, AnyActorRef, sendTo, setup } from 'xstate'
 import { BoxBox as Box } from './box/prefixed'
-import { syncScroll } from './scroll'
+import { getScroll, syncScroll } from './scroll'
 import { stepMachine } from './xstate-step'
 
 export type ScrollInput = {
@@ -61,6 +61,13 @@ export const scrollMachine = setup({
       ({ context }) => context.parent,
       () => ({ type: 'SCROLL.SLIDE.DONE' })
     ),
+    notifyScroll: sendTo(
+      ({ context }) => context.parent,
+      ({ context }) => ({
+        type: 'SCROLL',
+        scroll: getScroll(context.ref.current),
+      })
+    ),
   },
   actors: {
     step: stepMachine,
@@ -104,6 +111,14 @@ export const scrollMachine = setup({
             },
           ],
           target: 'Busy',
+        },
+        GET: {
+          actions: [
+            () => console.log('GET'),
+            {
+              type: 'notifyScroll',
+            },
+          ],
         },
       },
     },

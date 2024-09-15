@@ -1,3 +1,4 @@
+import { pipe } from 'fp-ts/lib/function'
 import { ReadonlyDeep } from 'type-fest'
 import { AnimationZoom } from './animation'
 import {
@@ -11,7 +12,7 @@ import { LayoutCoord, makeCoord, toMatrixSvg } from './coord'
 import { fit } from './fit'
 import { getBodySize } from './react-resize'
 import { Move, Scale, transformPoint } from './transform'
-import { VecVec as Vec, vecScale, vecSub } from './vec/prefixed'
+import { VecVec as Vec, vecScale, vecSub, VecVec } from './vec/prefixed'
 
 //// LayoutConfig
 //// Layout
@@ -81,10 +82,18 @@ export const expandLayout = (layout: Layout, s: number, focus: Vec): Layout => {
 //// zoomLayout
 //// recenterLayout
 
+// XXX moveTo
 export const moveLayout = (layout: Layout, move: Box): Layout => {
   return {
     ...layout,
     scroll: boxCopy(move),
+  }
+}
+
+export const moveByLayout = (layout: Layout, move: Vec): Layout => {
+  return {
+    ...layout,
+    scroll: boxMove(layout.scroll, move),
   }
 }
 
@@ -105,4 +114,13 @@ export const recenterLayout = (layout: Layout, start: Box): Layout => {
     scroll: boxCopy(start),
     svg: boxMove(layout.svg, dsvg),
   }
+}
+
+export const scrollLayout = (layout: Layout, scroll: VecVec): Layout => {
+  const move = vecSub(vecScale(scroll, -1), layout.scroll)
+  return pipe(
+    layout,
+    (l) => moveByLayout(l, move),
+    (l) => recenterLayout(l, boxCopy(layout.scroll))
+  )
 }

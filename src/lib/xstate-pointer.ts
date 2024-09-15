@@ -25,7 +25,9 @@ import {
   makeLayout,
   moveLayout,
   recenterLayout,
+  scrollLayout,
 } from './layout'
+import { toggleMode } from './mode'
 import {
   discardTouches,
   handleTouchEnd,
@@ -54,12 +56,14 @@ export type PointerContext = {
   containerRef: RefObject<HTMLDivElement>
   layout: Layout
   focus: Vec
+  mode: number
   expand: number
   z: number
   zoom: number
   touches: Touches
   drag: null | Drag
   animation: null | Animation
+  scroll: null | Vec
   debug: boolean
 }
 
@@ -69,6 +73,7 @@ type PointerExternalEvent =
   | { type: 'DEBUG' }
   | { type: 'RENDERED' }
   | { type: 'ANIMATION.END' }
+  | { type: 'SCROLL'; scroll: Vec }
   | { type: 'SCROLL.SLIDE.DONE' }
 
 type PointerInternalEvent =
@@ -152,6 +157,7 @@ export const pointerMachine = setup({
     shouldExpand: (_, { ev }: { ev: KeyboardEvent }) => ev.key === 'e',
     shouldMove: (_, { ev }: { ev: KeyboardEvent }) =>
       'hjkl'.indexOf(ev.key) >= 0,
+    shouldToggleMode: (_, { ev }: { ev: KeyboardEvent }) => ev.key === 'm',
     isMultiTouch: ({ context: { touches } }) => isMultiTouch(touches),
     isMultiTouchEnding: ({ context: { touches } }) =>
       isMultiTouchEnding(touches),
@@ -224,6 +230,14 @@ export const pointerMachine = setup({
         })
       }
     },
+    getScroll: ({ system }): void => {
+      system.get('scroll1').send({
+        type: 'GET',
+      })
+    },
+    setScroll: assign({
+      scroll: (_, { scroll }: { scroll: Vec }) => scroll,
+    }),
     zoomKey: assign({
       z: (_, { ev }: { ev: KeyboardEvent }): number => keyToZoom(ev.key),
     }),
@@ -253,6 +267,11 @@ export const pointerMachine = setup({
     recenterLayout: assign({
       layout: ({ context: { layout, drag } }): Layout =>
         drag === null ? layout : recenterLayout(layout, drag.start),
+    }),
+    scrollLayout: assign({
+      layout: ({ context: { layout } }, { s }: { s: Vec }): Layout => {
+        return scrollLayout(layout, s)
+      },
     }),
     resetLayout: assign({
       layout: ({ context: { layout } }): Layout => makeLayout(layout.config),
@@ -321,22 +340,28 @@ export const pointerMachine = setup({
       focus: ({ context: { touches, focus } }) =>
         touches.focus !== null ? touches.focus : focus,
     }),
+    toggleMode: assign({
+      mode: ({ context: { mode } }) => toggleMode(mode),
+    }),
   },
   actors: {
     scroll: scrollMachine,
   },
 }).createMachine({
+  type: 'parallel',
   id: 'pointer',
   context: ({ input: { containerRef, layout } }) => ({
     containerRef,
     layout,
     focus: boxCenter(layout.container),
+    mode: 0,
     expand: 1,
     z: 0,
     zoom: 0,
     touches: resetTouches(),
     drag: null,
     animation: null,
+    scroll: null,
     debug: false,
   }),
   invoke: [
@@ -349,7 +374,6 @@ export const pointerMachine = setup({
       }),
     },
   ],
-  type: 'parallel',
   states: {
     Pointer: {
       initial: 'Idle',
@@ -409,6 +433,14 @@ export const pointerMachine = setup({
                   params: ({ event }) => ({ ev: event.ev }),
                 },
                 target: 'Expanding',
+              },
+              {
+                guard: {
+                  type: 'shouldToggleMode',
+                  params: ({ event }) => ({ ev: event.ev }),
+                },
+                actions: 'toggleMode',
+                target: 'Moving',
               },
               {
                 guard: not('idle'),
@@ -522,6 +554,55 @@ export const pointerMachine = setup({
             },
           },
         },
+        Moving: {
+          initial: 'Expanding',
+          onDone: 'Idle',
+          states: {
+            Expanding: {
+              // XXX expand to fit the whole map
+              entry: raise({ type: 'EXPAND', n: 10 }),
+              on: {
+                'EXPAND.DONE': {
+                  target: 'Scrolling',
+                },
+              },
+            },
+            Scrolling: {
+              on: {
+                CLICK: {
+                  actions: 'getScroll',
+                  target: 'Scrolled',
+                },
+              },
+            },
+            Scrolled: {
+              on: {
+                SCROLL: {
+                  actions: [
+                    {
+                      type: 'scrollLayout',
+                      params: ({ event }) => ({ s: event.scroll }),
+                    },
+                    'resetScroll',
+                  ],
+                  target: 'Unexpanding',
+                },
+              },
+            },
+            Unexpanding: {
+              entry: raise({ type: 'UNEXPAND' }),
+              on: {
+                'UNEXPAND.DONE': {
+                  target: 'Done',
+                },
+              },
+            },
+            Done: {
+              entry: 'toggleMode',
+              type: 'final',
+            },
+          },
+        },
       },
     },
     Dragger: {
@@ -587,11 +668,11 @@ export const pointerMachine = setup({
                     target: 'Sliding',
                   },
                   {
-                    guard: and(['isMultiTouch']),
+                    guard: 'isMultiTouch',
                     target: 'Done',
                   },
                   {
-                    guard: and(['sliding']),
+                    guard: 'sliding',
                     actions: [
                       {
                         type: 'focus',
@@ -854,12 +935,12 @@ export const pointerMachine = setup({
         Inactive: {
           on: {
             'TOUCH.START.DONE': {
-              guard: and(['isMultiTouch']),
+              guard: 'isMultiTouch',
               actions: raise({ type: 'DRAG.CANCEL' }),
               target: 'Active',
             },
             'TOUCH.MOVE.DONE': {
-              guard: and(['isMultiTouch']),
+              guard: 'isMultiTouch',
               actions: raise({ type: 'DRAG.CANCEL' }),
               target: 'Active',
             },
@@ -880,7 +961,7 @@ export const pointerMachine = setup({
               },
             ],
             'TOUCH.END.DONE': {
-              guard: and(['isMultiTouchEnding']),
+              guard: 'isMultiTouchEnding',
               actions: ['resetTouches'],
               target: 'Done',
             },
@@ -905,6 +986,7 @@ export const pointerMachine = setup({
                 'ANIMATION.DONE': {
                   target: 'Unexpanding',
                 },
+                // XXX TOUCH.END.DONE?
               },
             },
             Unexpanding: {
@@ -930,24 +1012,6 @@ export const pointerMachine = setup({
               target: 'Active',
             },
           ],
-        },
-        Animating: {
-          entry: raise({ type: 'ANIMATION' }),
-          on: {
-            'ANIMATION.DONE': [
-              {
-                guard: not('isMultiTouch'),
-                target: 'Done',
-              },
-              {
-                target: 'Active',
-              },
-            ],
-            'TOUCH.END.DONE': {
-              guard: and(['isMultiTouchEnding']),
-              actions: ['resetTouches'],
-            },
-          },
         },
         Done: {
           entry: raise({ type: 'TOUCH.DONE' }),

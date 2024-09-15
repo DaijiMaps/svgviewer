@@ -7,6 +7,20 @@ import { ifNullOr, zoomToScale } from './utils'
 import { vecSub } from './vec/prefixed'
 import { PointerState } from './xstate-pointer'
 
+export function modeStyle(pointer: Readonly<PointerState>) {
+  return pointer.context.mode === 0
+    ? `
+.container {
+}
+`
+    : `
+.container {
+  cursor: move;
+  overflow: scroll;
+}
+`
+}
+
 export function dragStyle(pointer: Readonly<PointerState>) {
   if (!pointer.matches({ Pointer: 'Dragging' })) {
     return ''

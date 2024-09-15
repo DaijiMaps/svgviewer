@@ -5,7 +5,7 @@ import { Footer } from './Footer'
 import { Guides } from './Guides'
 import { Header } from './Header'
 import { usePointer } from './lib/react-pointer'
-import { dragStyle, moveStyle, zoomStyle } from './lib/style'
+import { dragStyle, modeStyle, moveStyle, zoomStyle } from './lib/style'
 import { Svg } from './Svg'
 
 export const Viewer = (props: Readonly<PropsWithChildren>) => {
@@ -36,6 +36,7 @@ export const Viewer = (props: Readonly<PropsWithChildren>) => {
         />
       )}
       <style>
+        {modeStyle(pointer)}
         {dragStyle(pointer)}
         {moveStyle(pointer)}
         {zoomStyle(pointer)}

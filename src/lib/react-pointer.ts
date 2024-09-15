@@ -72,6 +72,11 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
     [pointerSend]
   )
 
+  const sendWheel = useCallback(
+    (ev: WheelEvent) => send({ type: 'WHEEL', ev }),
+    [send]
+  )
+
   useEffect(() => {
     const e = containerRef.current
     if (e === null) {
@@ -93,9 +98,22 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
     e.addEventListener('touchcancel', (ev) =>
       send({ type: 'TOUCH.CANCEL', ev })
     )
-    e.addEventListener('wheel', (ev) => send({ type: 'WHEEL', ev }))
     e.addEventListener('click', (ev) => send({ type: 'CLICK', ev }))
   }, [containerRef, send])
+
+  const mode = useSelector(pointerRef, (snapshot) => snapshot.context.mode)
+
+  useEffect(() => {
+    const e = containerRef.current
+    if (e === null) {
+      return
+    }
+    if (mode === 0) {
+      e.addEventListener('wheel', sendWheel)
+    } else {
+      e.removeEventListener('wheel', sendWheel)
+    }
+  }, [containerRef, mode, sendWheel])
 
   useEffect(() => {
     if (pointer.hasTag('rendering')) {
