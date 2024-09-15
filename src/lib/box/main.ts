@@ -6,6 +6,13 @@ import { Vec } from '../vec'
 
 export type Box = Readonly<Vec & Size>
 
+export const box = (
+  x: number,
+  y: number,
+  width: number,
+  height: number
+): Box => ({ x, y, width, height })
+
 //// unit
 //// copy
 //// center

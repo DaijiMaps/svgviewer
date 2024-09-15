@@ -113,12 +113,9 @@ export const scrollMachine = setup({
           target: 'Busy',
         },
         GET: {
-          actions: [
-            () => console.log('GET'),
-            {
-              type: 'notifyScroll',
-            },
-          ],
+          actions: {
+            type: 'notifyScroll',
+          },
         },
       },
     },

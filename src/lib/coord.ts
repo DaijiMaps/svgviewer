@@ -2,6 +2,7 @@ import { BoxBox as Box, boxCopy } from './box/prefixed'
 import type { LayoutConfig } from './layout'
 import { MatrixMatrix as Matrix, matrixMultiply } from './matrix/prefixed'
 import { fromTransform, invMove, Move, Scale } from './transform'
+import { vecScale } from './vec/prefixed'
 
 //// LayoutCoord
 //// makeCoord
@@ -60,3 +61,7 @@ export const toMatrixSvg = ({
     fromTransform(invMove(scroll)),
   ].reduce((a, b) => matrixMultiply(a, b))
 }
+
+// inverse x/y
+export const fromScroll = (s: Box): Box => vecScale(s, -1)
+export const toScroll = (s: Box): Box => vecScale(s, -1)

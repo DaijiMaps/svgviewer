@@ -8,11 +8,11 @@ import {
   boxMove,
   boxScaleAt,
 } from './box/prefixed'
-import { LayoutCoord, makeCoord, toMatrixSvg } from './coord'
+import { fromScroll, LayoutCoord, makeCoord, toMatrixSvg } from './coord'
 import { fit } from './fit'
 import { getBodySize } from './react-resize'
 import { Move, Scale, transformPoint } from './transform'
-import { VecVec as Vec, vecScale, vecSub, VecVec } from './vec/prefixed'
+import { VecVec as Vec, vecScale, vecSub } from './vec/prefixed'
 
 //// LayoutConfig
 //// Layout
@@ -116,8 +116,8 @@ export const recenterLayout = (layout: Layout, start: Box): Layout => {
   }
 }
 
-export const scrollLayout = (layout: Layout, scroll: VecVec): Layout => {
-  const move = vecSub(vecScale(scroll, -1), layout.scroll)
+export const scrollLayout = (layout: Layout, scroll: Box): Layout => {
+  const move = vecSub(fromScroll(scroll), layout.scroll)
   return pipe(
     layout,
     (l) => moveByLayout(l, move),

@@ -1,5 +1,4 @@
-import { BoxBox as Box } from './box/prefixed'
-import { vecVec, VecVec } from './vec/prefixed'
+import { BoxBox as Box, boxBox, BoxBox } from './box/prefixed'
 
 // eslint-disable-next-line functional/prefer-immutable-types
 export const syncScroll = (e: null | HTMLElement, b: Box): boolean => {
@@ -35,9 +34,9 @@ export const syncScroll = (e: null | HTMLElement, b: Box): boolean => {
   return true
 }
 
-export function getScroll(e: null | Readonly<HTMLElement>): null | VecVec {
+export function getScroll(e: null | Readonly<HTMLElement>): null | BoxBox {
   if (e !== null) {
-    return vecVec(e.scrollLeft, e.scrollTop)
+    return boxBox(e.scrollLeft, e.scrollTop, e.scrollWidth, e.scrollHeight)
   }
   return null
 }

@@ -15,7 +15,7 @@ import {
   animationMove,
   animationZoom,
 } from './animation'
-import { boxCenter } from './box/prefixed'
+import { BoxBox, boxCenter } from './box/prefixed'
 import { Drag, dragMove, dragStart } from './drag'
 import { keyToDir, keyToZoom } from './key'
 import {
@@ -63,7 +63,6 @@ export type PointerContext = {
   touches: Touches
   drag: null | Drag
   animation: null | Animation
-  scroll: null | Vec
   debug: boolean
 }
 
@@ -73,7 +72,7 @@ type PointerExternalEvent =
   | { type: 'DEBUG' }
   | { type: 'RENDERED' }
   | { type: 'ANIMATION.END' }
-  | { type: 'SCROLL'; scroll: Vec }
+  | { type: 'SCROLL'; scroll: BoxBox }
   | { type: 'SCROLL.SLIDE.DONE' }
 
 type PointerInternalEvent =
@@ -235,9 +234,6 @@ export const pointerMachine = setup({
         type: 'GET',
       })
     },
-    setScroll: assign({
-      scroll: (_, { scroll }: { scroll: Vec }) => scroll,
-    }),
     zoomKey: assign({
       z: (_, { ev }: { ev: KeyboardEvent }): number => keyToZoom(ev.key),
     }),
@@ -269,8 +265,11 @@ export const pointerMachine = setup({
         drag === null ? layout : recenterLayout(layout, drag.start),
     }),
     scrollLayout: assign({
-      layout: ({ context: { layout } }, { s }: { s: Vec }): Layout => {
-        return scrollLayout(layout, s)
+      layout: (
+        { context: { layout } },
+        { scroll }: { scroll: BoxBox }
+      ): Layout => {
+        return scrollLayout(layout, scroll)
       },
     }),
     resetLayout: assign({
@@ -361,7 +360,6 @@ export const pointerMachine = setup({
     touches: resetTouches(),
     drag: null,
     animation: null,
-    scroll: null,
     debug: false,
   }),
   invoke: [
@@ -439,8 +437,7 @@ export const pointerMachine = setup({
                   type: 'shouldToggleMode',
                   params: ({ event }) => ({ ev: event.ev }),
                 },
-                actions: 'toggleMode',
-                target: 'Moving',
+                target: 'Scrolling',
               },
               {
                 guard: not('idle'),
@@ -554,13 +551,14 @@ export const pointerMachine = setup({
             },
           },
         },
-        Moving: {
+        // XXX Scroller
+        Scrolling: {
           initial: 'Expanding',
           onDone: 'Idle',
           states: {
             Expanding: {
               // XXX expand to fit the whole map
-              entry: raise({ type: 'EXPAND', n: 10 }),
+              entry: raise({ type: 'EXPAND', n: 9 }),
               on: {
                 'EXPAND.DONE': {
                   target: 'Scrolling',
@@ -568,20 +566,17 @@ export const pointerMachine = setup({
               },
             },
             Scrolling: {
+              entry: 'toggleMode',
+              exit: 'toggleMode',
               on: {
                 CLICK: {
                   actions: 'getScroll',
-                  target: 'Scrolled',
                 },
-              },
-            },
-            Scrolled: {
-              on: {
                 SCROLL: {
                   actions: [
                     {
                       type: 'scrollLayout',
-                      params: ({ event }) => ({ s: event.scroll }),
+                      params: ({ event: { scroll } }) => ({ scroll }),
                     },
                     'resetScroll',
                   ],
@@ -598,7 +593,6 @@ export const pointerMachine = setup({
               },
             },
             Done: {
-              entry: 'toggleMode',
               type: 'final',
             },
           },
