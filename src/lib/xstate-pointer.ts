@@ -586,10 +586,10 @@ export const pointerMachine = setup({
       initial: 'Inactive',
       states: {
         Inactive: {
+          exit: raise({ type: 'EXPAND', n: 3 }),
           on: {
             DRAG: {
               guard: 'idle',
-              actions: raise({ type: 'EXPAND', n: 3 }),
               target: 'Expanding',
             },
           },
@@ -606,9 +606,9 @@ export const pointerMachine = setup({
         },
         Sliding: {
           entry: raise({ type: 'SLIDE' }),
+          exit: raise({ type: 'UNEXPAND' }),
           on: {
             'SLIDE.DONE': {
-              actions: raise({ type: 'UNEXPAND' }),
               target: 'Expanding',
             },
           },
