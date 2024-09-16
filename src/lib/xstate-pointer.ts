@@ -299,6 +299,9 @@ export const pointerMachine = setup({
       ): null | Drag =>
         drag === null ? null : dragMove(drag, vecVec(ev.pageX, ev.pageY)),
     }),
+    endDrag: assign({
+      drag: () => null,
+    }),
     startMove: assign({
       animation: (
         { context: { drag, animation } },
@@ -579,6 +582,7 @@ export const pointerMachine = setup({
                       params: ({ event: { scroll } }) => ({ scroll }),
                     },
                     'resetScroll',
+                    'endDrag',
                   ],
                   target: 'Unexpanding',
                 },
@@ -791,6 +795,7 @@ export const pointerMachine = setup({
               actions: [
                 'recenterLayout',
                 'resetScroll',
+                'endDrag',
                 { type: 'expand', params: { n: 1 } },
               ],
               target: 'UnexpandRendering',
@@ -823,7 +828,7 @@ export const pointerMachine = setup({
             'ANIMATION.END': [
               {
                 guard: 'isMoving',
-                actions: ['endAnimation', 'recenterLayout', 'resetScroll'],
+                actions: ['endAnimation', 'recenterLayout', 'resetScroll', 'endDrag'],
                 target: 'Done',
               },
               {
