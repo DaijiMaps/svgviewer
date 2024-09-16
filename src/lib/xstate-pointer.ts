@@ -417,7 +417,7 @@ export const pointerMachine = setup({
                 actions: [
                   {
                     type: 'moveKey',
-                    params: ({ event }) => ({ ev: event.ev }),
+                    params: ({ event }) => ({ ev: event.ev, relative: 500 }),
                   },
                 ],
                 target: 'Moving',
