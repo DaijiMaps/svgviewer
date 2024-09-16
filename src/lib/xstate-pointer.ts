@@ -38,7 +38,7 @@ import {
   resetTouches,
   Touches,
 } from './touch'
-import { VecVec as Vec, vecScale, vecVec } from './vec/prefixed'
+import { VecVec as Vec, vecMul, vecVec } from './vec/prefixed'
 import { scrollMachine } from './xstate-scroll'
 
 const DIST_LIMIT = 10
@@ -243,8 +243,11 @@ export const pointerMachine = setup({
       })
     },
     moveKey: assign({
-      m: (_, { ev, relative }: { ev: KeyboardEvent; relative: number }): Vec =>
-        vecScale(keyToDir(ev.key), relative),
+      m: ({ context: { layout } }, { ev }: { ev: KeyboardEvent }): Vec =>
+        vecMul(
+          keyToDir(ev.key),
+          vecVec(layout.container.width * 0.5, layout.container.height * 0.5)
+        ),
     }),
     zoomKey: assign({
       z: (_, { ev }: { ev: KeyboardEvent }): number => keyToZoom(ev.key),
@@ -414,7 +417,7 @@ export const pointerMachine = setup({
                 actions: [
                   {
                     type: 'moveKey',
-                    params: ({ event }) => ({ ev: event.ev, relative: 500 }),
+                    params: ({ event }) => ({ ev: event.ev }),
                   },
                 ],
                 target: 'Moving',
