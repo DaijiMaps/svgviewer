@@ -98,6 +98,8 @@ type PointerInternalEvent =
   | { type: 'UNEXPAND.DONE' }
   | { type: 'UNEXPAND.UNEXPANDED' }
   | { type: 'UNEXPAND.RENDERED' }
+  | { type: 'ZOOM' }
+  | { type: 'ZOOM.DONE' }
   | { type: 'SCROLL' }
   | { type: 'SCROLL.DONE' }
 
@@ -168,6 +170,7 @@ export const pointerMachine = setup({
       animation !== null && animation.move !== null,
     isZooming: ({ context: { animation } }) =>
       animation !== null && animation.zoom !== null,
+    isZoomingIn: ({ context: { z } }) => z !== null && z > 0,
     isAnimating: ({ context: { animation } }) => animation !== null,
     idle: and([
       stateIn({ Pointer: 'Idle' }),
@@ -412,6 +415,7 @@ export const pointerMachine = setup({
                     params: ({ event }) => ({ ev: event.ev, relative: 500 }),
                   },
                 ],
+                // XXX Moving
                 target: 'Animating',
               },
             ],
@@ -458,9 +462,8 @@ export const pointerMachine = setup({
                     type: 'zoomKey',
                     params: ({ event }) => ({ ev: event.ev }),
                   },
-                  'startZoom',
                 ],
-                target: 'Animating',
+                target: 'Zooming',
               },
             ],
             CLICK: {
@@ -477,9 +480,8 @@ export const pointerMachine = setup({
                   type: 'zoomWheel',
                   params: ({ event }) => ({ ev: event.ev }),
                 },
-                'startZoom',
               ],
-              target: 'Animating',
+              target: 'Zooming',
             },
             'POINTER.DOWN': {
               actions: {
@@ -544,7 +546,6 @@ export const pointerMachine = setup({
         },
         Touching: {
           on: {
-            //ANIMATION: { target: 'Animating' },
             'TOUCH.DONE': { target: 'Idle' },
           },
         },
@@ -552,6 +553,14 @@ export const pointerMachine = setup({
           entry: raise({ type: 'ANIMATION' }),
           on: {
             'ANIMATION.DONE': {
+              target: 'Idle',
+            },
+          },
+        },
+        Zooming: {
+          entry: raise({ type: 'ZOOM' }),
+          on: {
+            'ZOOM.DONE': {
               target: 'Idle',
             },
           },
@@ -923,66 +932,85 @@ export const pointerMachine = setup({
               },
               {
                 guard: and(['touching', 'isTouchZooming']),
-                actions: ['zoomTouches'],
+                actions: 'zoomTouches',
                 target: 'Zooming',
               },
             ],
             'TOUCH.END.DONE': {
               guard: 'isMultiTouchEnding',
-              actions: ['resetTouches'],
+              actions: 'resetTouches',
               target: 'Done',
             },
           },
         },
         Zooming: {
-          initial: 'Expanding',
-          onDone: 'Zoomed',
-          states: {
-            Expanding: {
-              entry: raise({ type: 'EXPAND', n: 3 }),
-              on: {
-                'EXPAND.DONE': {
-                  actions: ['startZoom', 'discardTouches'],
-                  target: 'Animating',
-                },
+          entry: raise({ type: 'ZOOM' }),
+          on: {
+            'ZOOM.DONE': [
+              {
+                guard: not('isMultiTouch'),
+                actions: 'resetTouches',
+                target: 'Done',
               },
-            },
-            Animating: {
-              entry: raise({ type: 'ANIMATION' }),
-              on: {
-                'ANIMATION.DONE': {
-                  target: 'Unexpanding',
-                },
-                // XXX TOUCH.END.DONE?
+              {
+                actions: 'discardTouches',
+                target: 'Active',
               },
-            },
-            Unexpanding: {
-              entry: raise({ type: 'UNEXPAND' }),
-              on: {
-                'UNEXPAND.DONE': {
-                  target: 'Done',
-                },
-              },
-            },
-            Done: {
-              type: 'final',
-            },
+            ],
           },
-        },
-        Zoomed: {
-          always: [
-            {
-              guard: not('isMultiTouch'),
-              target: 'Done',
-            },
-            {
-              target: 'Active',
-            },
-          ],
         },
         Done: {
           entry: raise({ type: 'TOUCH.DONE' }),
           always: 'Inactive',
+        },
+      },
+    },
+    Zoomer: {
+      initial: 'Idle',
+      states: {
+        Idle: {
+          on: {
+            ZOOM: [
+              {
+                guard: not('isZoomingIn'),
+                actions: raise({ type: 'EXPAND', n: 3 }),
+                target: 'Expanding',
+              },
+              {
+                guard: 'isZoomingIn',
+                actions: raise({ type: 'EXPAND', n: 1 }),
+                target: 'Expanding',
+              },
+            ],
+          },
+        },
+        Expanding: {
+          on: {
+            'EXPAND.DONE': {
+              actions: 'startZoom',
+              target: 'Animating',
+            },
+          },
+        },
+        Animating: {
+          entry: raise({ type: 'ANIMATION' }),
+          on: {
+            'ANIMATION.DONE': {
+              target: 'Unexpanding',
+            },
+          },
+        },
+        Unexpanding: {
+          entry: raise({ type: 'UNEXPAND' }),
+          on: {
+            'UNEXPAND.DONE': {
+              target: 'Done',
+            },
+          },
+        },
+        Done: {
+          entry: raise({ type: 'ZOOM.DONE' }),
+          always: 'Idle',
         },
       },
     },
@@ -1002,16 +1030,15 @@ export const pointerMachine = setup({
           entry: raise({ type: 'EXPAND', n: 9 }),
           on: {
             'EXPAND.DONE': {
+              actions: 'toggleMode',
               target: 'Scrolling',
             },
           },
         },
         Scrolling: {
-          entry: 'toggleMode',
-          exit: 'toggleMode',
           on: {
             CLICK: {
-              actions: 'getScroll',
+              actions: ['toggleMode', 'getScroll'],
             },
             'SCROLL.GET.DONE': {
               actions: [

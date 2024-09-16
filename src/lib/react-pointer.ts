@@ -109,6 +109,7 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
       return
     }
     if (mode === 0) {
+      e.removeEventListener('wheel', sendWheel)
       e.addEventListener('wheel', sendWheel)
     } else {
       e.removeEventListener('wheel', sendWheel)

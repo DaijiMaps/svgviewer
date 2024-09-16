@@ -79,8 +79,10 @@ export const expandLayout = (layout: Layout, s: number, focus: Vec): Layout => {
 }
 
 //// relocLayout
+//// moveLayout
 //// zoomLayout
 //// recenterLayout
+//// scrollLayout
 
 export const relocLayout = (layout: Layout, dest: Box): Layout => {
   return {
