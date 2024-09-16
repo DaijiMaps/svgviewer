@@ -9,8 +9,8 @@ import {
   expandLayout,
   expandLayoutCenter,
   makeLayout,
-  moveLayout,
   recenterLayout,
+  relocLayout,
 } from './layout'
 import { transformPoint, transformScale } from './transform'
 import { vecVec } from './vec/prefixed'
@@ -230,7 +230,7 @@ test('recenter 3', () => {
   const d1 = dragStart(l1.scroll, focus)
   const d2 = dragMove(d1, vecVec(0, 0))
   const d3 = dragMove(d2, vecVec(600, 500))
-  const l2 = moveLayout(l1, d3.move)
+  const l2 = relocLayout(l1, d3.move)
   const l3 = recenterLayout(l2, d3.start)
   const l4 = expandLayout(l3, 1 / 2, focus)
   expect(l4).toStrictEqual(layout)
@@ -248,7 +248,7 @@ test('recenter 4', () => {
   const l2 = pipe(d2, (d) =>
     pipe(
       layout,
-      (l) => moveLayout(l, d.move),
+      (l) => relocLayout(l, d.move),
       (l) => recenterLayout(l, d.start)
     )
   )
@@ -258,7 +258,7 @@ test('recenter 4', () => {
   expect(x2).toBe(0)
 
   const d3 = dragMove(d2, vecVec(1, 1))
-  const l3 = moveLayout(l2, d3.move)
+  const l3 = relocLayout(l2, d3.move)
   const ox3 = d3.start.x
   const x3 = d3.move.x
   expect(ox3).toBe(0)
@@ -283,7 +283,7 @@ test('move + zoom', () => {
   const d5 = dragStart(l4.scroll, focus)
   const a6 = animationMove(d5, vecVec(-1, 0))
   const l5 = animationEndLayout(l4, a6)
-  const l6 = moveLayout(l5, d5.move)
+  const l6 = relocLayout(l5, d5.move)
   const l7 = recenterLayout(l6, d5.start)
 
   expect(layout).toStrictEqual({

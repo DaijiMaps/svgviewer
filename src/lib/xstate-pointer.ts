@@ -23,8 +23,8 @@ import {
   Layout,
   LayoutConfig,
   makeLayout,
-  moveLayout,
   recenterLayout,
+  relocLayout,
   scrollLayout,
 } from './layout'
 import { toggleMode } from './mode'
@@ -310,7 +310,7 @@ export const pointerMachine = setup({
     }),
     endMove: assign({
       layout: ({ context: { layout, drag } }): Layout =>
-        drag === null ? layout : moveLayout(layout, drag.move),
+        drag === null ? layout : relocLayout(layout, drag.move),
       animation: () => null,
     }),
     startTouches: assign({

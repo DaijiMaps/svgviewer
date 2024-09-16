@@ -6,8 +6,8 @@ import {
   Layout,
   LayoutConfig,
   makeLayout,
-  moveLayout,
   recenterLayout,
+  relocLayout,
 } from './layout'
 
 export interface LayoutInput {
@@ -46,7 +46,7 @@ export const layoutMachine = setup({
     }),
     endMove: assign({
       layout: ({ context: { layout } }, { drag }: { drag: Drag }): Layout =>
-        moveLayout(layout, drag.move),
+        relocLayout(layout, drag.move),
     }),
   },
 }).createMachine({

@@ -4,7 +4,7 @@ import { Box } from './box'
 import { boxMove, boxScaleAt } from './box/prefixed'
 import { toMatrixSvg } from './coord'
 import { Drag } from './drag'
-import { Layout, moveLayout, zoomLayout } from './layout'
+import { Layout, relocLayout, zoomLayout } from './layout'
 import { Scale, transformPoint, transformScale } from './transform'
 import { zoomToScale } from './utils'
 import { VecVec as Vec } from './vec/prefixed'
@@ -52,7 +52,7 @@ export const animationEndLayout = (
 ): Layout => {
   return pipe(
     layout,
-    (l) => (animation.move === null ? l : moveLayout(l, animation.move)),
+    (l) => (animation.move === null ? l : relocLayout(l, animation.move)),
     (l) => (animation.zoom === null ? l : zoomLayout(l, animation.zoom))
   )
 }

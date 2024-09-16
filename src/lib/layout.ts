@@ -78,19 +78,18 @@ export const expandLayout = (layout: Layout, s: number, focus: Vec): Layout => {
   }
 }
 
-//// moveLayout
+//// relocLayout
 //// zoomLayout
 //// recenterLayout
 
-// XXX moveTo
-export const moveLayout = (layout: Layout, move: Box): Layout => {
+export const relocLayout = (layout: Layout, dest: Box): Layout => {
   return {
     ...layout,
-    scroll: boxCopy(move),
+    scroll: boxCopy(dest),
   }
 }
 
-export const moveByLayout = (layout: Layout, move: Vec): Layout => {
+export const moveLayout = (layout: Layout, move: Vec): Layout => {
   return {
     ...layout,
     scroll: boxMove(layout.scroll, move),
@@ -120,7 +119,7 @@ export const scrollLayout = (layout: Layout, scroll: Box): Layout => {
   const move = vecSub(fromScroll(scroll), layout.scroll)
   return pipe(
     layout,
-    (l) => moveByLayout(l, move),
+    (l) => moveLayout(l, move),
     (l) => recenterLayout(l, boxCopy(layout.scroll))
   )
 }
