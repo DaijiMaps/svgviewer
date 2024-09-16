@@ -828,7 +828,12 @@ export const pointerMachine = setup({
             'ANIMATION.END': [
               {
                 guard: 'isMoving',
-                actions: ['endAnimation', 'recenterLayout', 'resetScroll', 'endDrag'],
+                actions: [
+                  'endAnimation',
+                  'recenterLayout',
+                  'resetScroll',
+                  'endDrag',
+                ],
                 target: 'Done',
               },
               {
