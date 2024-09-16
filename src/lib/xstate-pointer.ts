@@ -315,12 +315,8 @@ export const pointerMachine = setup({
       drag: () => null,
     }),
     startMove: assign({
-      animation: (
-        { context: { drag, animation, m } },
-      ): null | Animation =>
-        drag === null || m === null
-          ? animation
-          : animationMove(drag, m),
+      animation: ({ context: { drag, animation, m } }): null | Animation =>
+        drag === null || m === null ? animation : animationMove(drag, m),
     }),
     endMove: assign({
       layout: ({ context: { layout, drag } }): Layout =>
@@ -587,15 +583,18 @@ export const pointerMachine = setup({
           on: {
             DRAG: {
               guard: 'idle',
+              actions: raise({ type: 'EXPAND', n: 3 }),
               target: 'Expanding',
             },
           },
         },
         Expanding: {
-          entry: raise({ type: 'EXPAND', n: 3 }),
           on: {
             'EXPAND.DONE': {
               target: 'Sliding',
+            },
+            'UNEXPAND.DONE': {
+              target: 'Inactive',
             },
           },
         },
@@ -603,15 +602,8 @@ export const pointerMachine = setup({
           entry: raise({ type: 'SLIDE' }),
           on: {
             'SLIDE.DONE': {
-              target: 'Unexpanding',
-            },
-          },
-        },
-        Unexpanding: {
-          entry: raise({ type: 'UNEXPAND' }),
-          on: {
-            'UNEXPAND.DONE': {
-              target: 'Inactive',
+              actions: raise({ type: 'UNEXPAND' }),
+              target: 'Expanding',
             },
           },
         },
@@ -1041,17 +1033,20 @@ export const pointerMachine = setup({
           entry: raise({ type: 'SCROLL.DONE' }),
           on: {
             SCROLL: {
+              actions: raise({ type: 'EXPAND', n: 9 }),
               target: 'Expanding',
             },
           },
         },
         Expanding: {
           // XXX expand to fit the whole map
-          entry: raise({ type: 'EXPAND', n: 9 }),
           on: {
             'EXPAND.DONE': {
               actions: 'toggleMode',
               target: 'Scrolling',
+            },
+            'UNEXPAND.DONE': {
+              target: 'Idle',
             },
           },
         },
@@ -1066,16 +1061,9 @@ export const pointerMachine = setup({
                   type: 'scrollLayout',
                   params: ({ event: { scroll } }) => ({ scroll }),
                 },
+                raise({ type: 'UNEXPAND' }),
               ],
-              target: 'Unexpanding',
-            },
-          },
-        },
-        Unexpanding: {
-          entry: raise({ type: 'UNEXPAND' }),
-          on: {
-            'UNEXPAND.DONE': {
-              target: 'Idle',
+              target: 'Expanding',
             },
           },
         },
