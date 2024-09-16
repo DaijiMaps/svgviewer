@@ -36,7 +36,7 @@ export function dragStyle(pointer: Readonly<PointerState>) {
 export function moveStyle(pointer: Readonly<PointerState>) {
   const { layout, animation } = pointer.context
 
-  if (!pointer.matches({ Animator: 'Animating' })) {
+  if (!pointer.matches({ Animator: 'Busy' })) {
     return ''
   }
 
@@ -53,7 +53,7 @@ export function moveStyle(pointer: Readonly<PointerState>) {
 export function zoomStyle(pointer: Readonly<PointerState>) {
   const { layout, focus, zoom, animation } = pointer.context
 
-  if (!pointer.matches({ Animator: 'Animating' })) {
+  if (!pointer.matches({ Animator: 'Busy' })) {
     return ''
   }
 

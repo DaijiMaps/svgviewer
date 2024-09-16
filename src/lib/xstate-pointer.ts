@@ -59,7 +59,7 @@ export type PointerContext = {
   mode: number
   expand: number
   m: null | Vec
-  z: number
+  z: null | number
   zoom: number
   touches: Touches
   drag: null | Drag
@@ -179,32 +179,32 @@ export const pointerMachine = setup({
       stateIn({ Pointer: 'Idle' }),
       stateIn({ Dragger: 'Inactive' }),
       stateIn({ Slider: { PointerHandler: 'Inactive' } }),
-      stateIn({ Animator: 'Inactive' }),
+      stateIn({ Animator: 'Idle' }),
     ]),
     dragging: and([
       stateIn({ Pointer: 'Dragging' }),
       stateIn({ Dragger: 'Sliding' }),
       stateIn({ Slider: { PointerHandler: 'Inactive' } }),
-      stateIn({ Animator: 'Inactive' }),
+      stateIn({ Animator: 'Idle' }),
     ]),
     touching: and([
       stateIn({ Pointer: 'Touching' }),
       stateIn({ Dragger: 'Inactive' }),
       stateIn({ Slider: { PointerHandler: 'Inactive' } }),
-      stateIn({ Animator: 'Inactive' }),
+      stateIn({ Animator: 'Idle' }),
     ]),
     sliding: and([
       stateIn({ Pointer: 'Dragging' }),
       stateIn({ Dragger: 'Sliding' }),
       stateIn({ Slider: { PointerHandler: 'Active' } }),
-      stateIn({ Animator: 'Inactive' }),
+      stateIn({ Animator: 'Idle' }),
     ]),
     slidingDragBusy: and([
       stateIn({ Pointer: 'Dragging' }),
       stateIn({ Dragger: 'Sliding' }),
       stateIn({ Slider: { PointerHandler: 'Active' } }),
       stateIn({ Slider: { ScrollHandler: 'Busy' } }),
-      stateIn({ Animator: 'Inactive' }),
+      stateIn({ Animator: 'Idle' }),
     ]),
   },
   actions: {
@@ -256,15 +256,17 @@ export const pointerMachine = setup({
       z: (_, { ev }: { ev: WheelEvent }): number => (ev.deltaY < 0 ? 1 : -1),
     }),
     zoomTouches: assign({
-      z: ({ context: { touches, z } }): number =>
+      z: ({ context: { touches, z } }): null | number =>
         touches.z !== null ? touches.z : z,
       focus: ({ context: { focus, touches } }) =>
         touches.z !== null && touches.focus !== null ? touches.focus : focus,
     }),
     startZoom: assign({
-      animation: ({ context: { layout, focus, z, zoom } }): null | Animation =>
-        animationZoom(layout, zoom, z, focus),
-      z: () => 0,
+      animation: ({
+        context: { layout, focus, z, zoom, animation },
+      }): null | Animation =>
+        z === null ? animation : animationZoom(layout, zoom, z, focus),
+      z: () => null,
     }),
     endAnimation: assign({
       layout: ({ context: { layout, animation } }): Layout =>
@@ -320,6 +322,7 @@ export const pointerMachine = setup({
     startMove: assign({
       animation: ({ context: { drag, animation, m } }): null | Animation =>
         drag === null || m === null ? animation : animationMove(drag, m),
+      z: () => null,
     }),
     endMove: assign({
       layout: ({ context: { layout, drag } }): Layout =>
@@ -369,7 +372,7 @@ export const pointerMachine = setup({
     mode: 0,
     expand: 1,
     m: null,
-    z: 0,
+    z: null,
     zoom: 0,
     touches: resetTouches(),
     drag: null,
@@ -417,7 +420,7 @@ export const pointerMachine = setup({
                 actions: [
                   {
                     type: 'moveKey',
-                    params: ({ event }) => ({ ev: event.ev, relative: 500 }),
+                    params: ({ event }) => ({ ev: event.ev }),
                   },
                 ],
                 target: 'Moving',
@@ -783,35 +786,22 @@ export const pointerMachine = setup({
       },
     },
     Animator: {
-      initial: 'Inactive',
+      initial: 'Idle',
       states: {
-        Inactive: {
+        Idle: {
           entry: raise({ type: 'ANIMATION.DONE' }),
           on: {
             ANIMATION: {
-              target: 'Animating',
+              target: 'Busy',
             },
           },
         },
-        Animating: {
+        Busy: {
           on: {
-            'ANIMATION.END': [
-              {
-                guard: 'isMoving',
-                actions: [
-                  'endAnimation',
-                  'recenterLayout',
-                  'resetScroll',
-                  'endDrag',
-                ],
-                target: 'Inactive',
-              },
-              {
-                guard: 'isZooming',
-                actions: 'endAnimation',
-                target: 'Inactive',
-              },
-            ],
+            'ANIMATION.END': {
+              actions: 'endAnimation',
+              target: 'Idle',
+            },
           },
         },
       },
@@ -979,7 +969,12 @@ export const pointerMachine = setup({
           entry: raise({ type: 'ANIMATION' }),
           on: {
             'ANIMATION.DONE': {
-              actions: raise({ type: 'UNEXPAND' }),
+              actions: [
+                'recenterLayout',
+                'resetScroll',
+                'endDrag',
+                raise({ type: 'UNEXPAND' }),
+              ],
               target: 'Expanding',
             },
           },
