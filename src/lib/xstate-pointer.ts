@@ -624,6 +624,7 @@ export const pointerMachine = setup({
           initial: 'Inactive',
           states: {
             Inactive: {
+              entry: raise({ type: 'SLIDE.DONE' }),
               on: {
                 SLIDE: {
                   guard: 'dragging',
@@ -644,7 +645,7 @@ export const pointerMachine = setup({
                   },
                   {
                     guard: 'isMultiTouch',
-                    target: 'Done',
+                    target: 'Inactive',
                   },
                   {
                     guard: 'sliding',
@@ -673,7 +674,7 @@ export const pointerMachine = setup({
                     target: 'Sliding',
                   },
                   {
-                    target: 'Done',
+                    target: 'Inactive',
                   },
                 ],
                 'DRAG.CANCEL': [
@@ -682,7 +683,7 @@ export const pointerMachine = setup({
                     target: 'Sliding',
                   },
                   {
-                    target: 'Done',
+                    target: 'Inactive',
                   },
                 ],
               },
@@ -692,13 +693,9 @@ export const pointerMachine = setup({
                 'SLIDE.DRAG.DONE': {
                   guard: not('slidingDragBusy'),
                   actions: 'endMove',
-                  target: 'Done',
+                  target: 'Inactive',
                 },
               },
-            },
-            Done: {
-              entry: raise({ type: 'SLIDE.DONE' }),
-              always: 'Inactive',
             },
           },
         },
@@ -794,6 +791,7 @@ export const pointerMachine = setup({
       initial: 'Inactive',
       states: {
         Inactive: {
+          entry: raise({ type: 'ANIMATION.DONE' }),
           on: {
             ANIMATION: {
               target: 'Animating',
@@ -811,19 +809,15 @@ export const pointerMachine = setup({
                   'resetScroll',
                   'endDrag',
                 ],
-                target: 'Done',
+                target: 'Inactive',
               },
               {
                 guard: 'isZooming',
                 actions: 'endAnimation',
-                target: 'Done',
+                target: 'Inactive',
               },
             ],
           },
-        },
-        Done: {
-          entry: raise({ type: 'ANIMATION.DONE' }),
-          always: 'Inactive',
         },
       },
     },
@@ -831,6 +825,7 @@ export const pointerMachine = setup({
       initial: 'Inactive',
       states: {
         Inactive: {
+          entry: raise({ type: 'DRAG.DONE' }),
           on: {
             'POINTER.DOWN': {
               guard: 'idle',
@@ -845,7 +840,7 @@ export const pointerMachine = setup({
             },
             'POINTER.UP': {
               actions: raise({ type: 'DRAG.DONE' }),
-              target: 'Done',
+              target: 'Inactive',
             },
           },
         },
@@ -853,20 +848,16 @@ export const pointerMachine = setup({
           entry: raise({ type: 'DRAG' }),
           on: {
             'POINTER.UP': {
-              target: 'Done',
+              target: 'Inactive',
             },
             'DRAG.CANCEL': {
-              target: 'Done',
+              target: 'Inactive',
             },
             'TOUCH.MOVE.DONE': {
               guard: 'isMultiTouch',
-              target: 'Done',
+              target: 'Inactive',
             },
           },
-        },
-        Done: {
-          entry: raise({ type: 'DRAG.DONE' }),
-          always: 'Inactive',
         },
       },
     },
@@ -914,6 +905,7 @@ export const pointerMachine = setup({
       initial: 'Inactive',
       states: {
         Inactive: {
+          entry: raise({ type: 'TOUCH.DONE' }),
           on: {
             'TOUCH.START.DONE': {
               guard: 'isMultiTouch',
@@ -933,7 +925,7 @@ export const pointerMachine = setup({
             'TOUCH.MOVE.DONE': [
               {
                 guard: not('touching'),
-                target: 'Done',
+                target: 'Inactive',
               },
               {
                 guard: and(['touching', 'isTouchZooming']),
@@ -944,7 +936,7 @@ export const pointerMachine = setup({
             'TOUCH.END.DONE': {
               guard: 'isMultiTouchEnding',
               actions: 'resetTouches',
-              target: 'Done',
+              target: 'Inactive',
             },
           },
         },
@@ -955,7 +947,7 @@ export const pointerMachine = setup({
               {
                 guard: not('isMultiTouch'),
                 actions: 'resetTouches',
-                target: 'Done',
+                target: 'Inactive',
               },
               {
                 actions: 'discardTouches',
@@ -963,10 +955,6 @@ export const pointerMachine = setup({
               },
             ],
           },
-        },
-        Done: {
-          entry: raise({ type: 'TOUCH.DONE' }),
-          always: 'Inactive',
         },
       },
     },
