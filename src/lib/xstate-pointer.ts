@@ -38,7 +38,7 @@ import {
   resetTouches,
   Touches,
 } from './touch'
-import { VecVec as Vec, vecMul, vecVec } from './vec/prefixed'
+import { VecVec as Vec, vecMul, vecSub, vecVec } from './vec/prefixed'
 import { scrollMachine } from './xstate-scroll'
 
 const DIST_LIMIT = 10
@@ -57,6 +57,7 @@ export type PointerContext = {
   layout: Layout
   focus: Vec
   mode: number
+  x: null | number
   expand: number
   m: null | Vec
   z: null | number
@@ -91,7 +92,7 @@ type PointerInternalEvent =
   | { type: 'SLIDE.DONE' }
   | { type: 'SLIDE.DRAG.DONE' }
   | { type: 'SLIDE.DRAG.SLIDE' }
-  | { type: 'EXPAND'; n?: number }
+  | { type: 'EXPAND' }
   | { type: 'EXPAND.DONE' }
   | { type: 'EXPAND.EXPANDED' }
   | { type: 'EXPAND.RENDERED' }
@@ -249,6 +250,10 @@ export const pointerMachine = setup({
           vecVec(layout.container.width * 0.5, layout.container.height * 0.5)
         ),
     }),
+    moveFocus: assign({
+      m: ({ context: { layout, focus } }): Vec =>
+        vecSub(boxCenter(layout.container), focus),
+    }),
     zoomKey: assign({
       z: (_, { ev }: { ev: KeyboardEvent }): number => keyToZoom(ev.key),
     }),
@@ -291,15 +296,22 @@ export const pointerMachine = setup({
     }),
     resetLayout: assign({
       layout: ({ context: { layout } }): Layout => makeLayout(layout.config),
+      expand: () => 1,
       zoom: () => 0,
     }),
     resetFocus: assign({
       focus: ({ context: { layout } }): Vec => boxCenter(layout.container),
     }),
+    startExpand: assign({
+      x: (_, { x }: { x: null | number }): null | number => x,
+    }),
+    startExpandToggle: assign({
+      x: ({ context: { expand } }): null | number => (expand === 1 ? 3 : 1),
+    }),
     expand: assign({
-      layout: ({ context: { layout, expand } }, { n }: { n: number }): Layout =>
-        expandLayoutCenter(layout, n / expand),
-      expand: (_, { n }: { n: number }): number => n,
+      layout: ({ context: { layout, expand, x } }): Layout =>
+        x === null ? layout : expandLayoutCenter(layout, x / expand),
+      expand: ({ context: { expand, x } }): number => (x === null ? expand : x),
     }),
     focus: assign({
       focus: (_, { ev }: { ev: MouseEvent | PointerEvent }): Vec =>
@@ -370,6 +382,7 @@ export const pointerMachine = setup({
     layout,
     focus: boxCenter(layout.container),
     mode: 0,
+    x: null,
     expand: 1,
     m: null,
     z: null,
@@ -474,10 +487,13 @@ export const pointerMachine = setup({
               },
             ],
             CLICK: {
-              actions: {
-                type: 'focus',
-                params: ({ event }) => ({ ev: event.ev }),
-              },
+              actions: [
+                {
+                  type: 'focus',
+                  params: ({ event }) => ({ ev: event.ev }),
+                },
+              ],
+              target: 'Idle',
             },
             WHEEL: {
               guard: 'idle',
@@ -511,14 +527,15 @@ export const pointerMachine = setup({
           onDone: 'Idle',
           states: {
             Checking: {
+              exit: 'startExpandToggle',
               always: [
                 {
-                  guard: not('isExpanded'),
-                  actions: raise({ type: 'EXPAND' }),
+                  guard: 'isExpanded',
+                  actions: raise({ type: 'UNEXPAND' }),
                   target: 'Expanding',
                 },
                 {
-                  actions: raise({ type: 'UNEXPAND' }),
+                  actions: raise({ type: 'EXPAND' }),
                   target: 'Expanding',
                 },
               ],
@@ -586,7 +603,10 @@ export const pointerMachine = setup({
       initial: 'Inactive',
       states: {
         Inactive: {
-          exit: raise({ type: 'EXPAND', n: 3 }),
+          exit: [
+            { type: 'startExpand', params: { x: 3 } },
+            raise({ type: 'EXPAND' }),
+          ],
           on: {
             DRAG: {
               guard: 'idle',
@@ -726,12 +746,7 @@ export const pointerMachine = setup({
           entry: raise({ type: 'UNEXPAND.DONE' }),
           on: {
             EXPAND: {
-              actions: {
-                type: 'expand',
-                params: ({ context: { expand }, event: { n } }) => ({
-                  n: n !== undefined ? n : expand === 1 ? 3 : 1,
-                }),
-              },
+              actions: 'expand',
               target: 'Expanding',
             },
           },
@@ -949,7 +964,10 @@ export const pointerMachine = setup({
           entry: raise({ type: 'MOVE.DONE' }),
           on: {
             MOVE: {
-              actions: raise({ type: 'EXPAND', n: 3 }),
+              actions: [
+                { type: 'startExpand', params: { x: 3 } },
+                raise({ type: 'EXPAND' }),
+              ],
               target: 'Expanding',
             },
           },
@@ -990,12 +1008,18 @@ export const pointerMachine = setup({
             ZOOM: [
               {
                 guard: not('isZoomingIn'),
-                actions: raise({ type: 'EXPAND', n: 3 }),
+                actions: [
+                  { type: 'startExpand', params: { x: 3 } },
+                  raise({ type: 'EXPAND' }),
+                ],
                 target: 'Expanding',
               },
               {
                 guard: 'isZoomingIn',
-                actions: raise({ type: 'EXPAND', n: 1 }),
+                actions: [
+                  { type: 'startExpand', params: { x: 1 } },
+                  raise({ type: 'EXPAND' }),
+                ],
                 target: 'Expanding',
               },
             ],
@@ -1030,7 +1054,10 @@ export const pointerMachine = setup({
           entry: raise({ type: 'SCROLL.DONE' }),
           on: {
             SCROLL: {
-              actions: raise({ type: 'EXPAND', n: 9 }),
+              actions: [
+                { type: 'startExpand', params: { x: 9 } },
+                raise({ type: 'EXPAND' }),
+              ],
               target: 'Expanding',
             },
           },

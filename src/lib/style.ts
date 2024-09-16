@@ -28,6 +28,7 @@ export function dragStyle(pointer: Readonly<PointerState>) {
 
   return `
 .container {
+  cursor: grabbing;
   overflow: scroll;
 }
 `
