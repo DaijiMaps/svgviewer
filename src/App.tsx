@@ -1,12 +1,11 @@
 import './App.css'
-import asas from './assets/asas.svg'
 import { config } from './lib/config'
 import { Viewer } from './Viewer'
 
 function App() {
   return (
     <Viewer>
-      <image width={config.WIDTH} height={config.HEIGHT} href={asas} />
+      <use width={config.WIDTH} height={config.HEIGHT} href="#Map1" />
     </Viewer>
   )
 }
