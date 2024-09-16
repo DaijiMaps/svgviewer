@@ -72,7 +72,7 @@ type PointerExternalEvent =
   | { type: 'DEBUG' }
   | { type: 'RENDERED' }
   | { type: 'ANIMATION.END' }
-  | { type: 'SCROLL'; scroll: BoxBox }
+  | { type: 'SCROLL.GET.DONE'; scroll: BoxBox }
   | { type: 'SCROLL.SLIDE.DONE' }
 
 type PointerInternalEvent =
@@ -98,6 +98,8 @@ type PointerInternalEvent =
   | { type: 'UNEXPAND.DONE' }
   | { type: 'UNEXPAND.UNEXPANDED' }
   | { type: 'UNEXPAND.RENDERED' }
+  | { type: 'SCROLL' }
+  | { type: 'SCROLL.DONE' }
 
 export type PointerDOMEvent =
   | MouseEvent
@@ -554,50 +556,11 @@ export const pointerMachine = setup({
             },
           },
         },
-        // XXX Scroller
         Scrolling: {
-          initial: 'Expanding',
-          onDone: 'Idle',
-          states: {
-            Expanding: {
-              // XXX expand to fit the whole map
-              entry: raise({ type: 'EXPAND', n: 9 }),
-              on: {
-                'EXPAND.DONE': {
-                  target: 'Scrolling',
-                },
-              },
-            },
-            Scrolling: {
-              entry: 'toggleMode',
-              exit: 'toggleMode',
-              on: {
-                CLICK: {
-                  actions: 'getScroll',
-                },
-                SCROLL: {
-                  actions: [
-                    {
-                      type: 'scrollLayout',
-                      params: ({ event: { scroll } }) => ({ scroll }),
-                    },
-                    'resetScroll',
-                    'endDrag',
-                  ],
-                  target: 'Unexpanding',
-                },
-              },
-            },
-            Unexpanding: {
-              entry: raise({ type: 'UNEXPAND' }),
-              on: {
-                'UNEXPAND.DONE': {
-                  target: 'Done',
-                },
-              },
-            },
-            Done: {
-              type: 'final',
+          entry: raise({ type: 'SCROLL' }),
+          on: {
+            'SCROLL.DONE': {
+              target: 'Idle',
             },
           },
         },
@@ -1020,6 +983,54 @@ export const pointerMachine = setup({
         Done: {
           entry: raise({ type: 'TOUCH.DONE' }),
           always: 'Inactive',
+        },
+      },
+    },
+    Scroller: {
+      initial: 'Idle',
+      states: {
+        Idle: {
+          entry: raise({ type: 'SCROLL.DONE' }),
+          on: {
+            SCROLL: {
+              target: 'Expanding',
+            },
+          },
+        },
+        Expanding: {
+          // XXX expand to fit the whole map
+          entry: raise({ type: 'EXPAND', n: 9 }),
+          on: {
+            'EXPAND.DONE': {
+              target: 'Scrolling',
+            },
+          },
+        },
+        Scrolling: {
+          entry: 'toggleMode',
+          exit: 'toggleMode',
+          on: {
+            CLICK: {
+              actions: 'getScroll',
+            },
+            'SCROLL.GET.DONE': {
+              actions: [
+                {
+                  type: 'scrollLayout',
+                  params: ({ event: { scroll } }) => ({ scroll }),
+                },
+              ],
+              target: 'Unexpanding',
+            },
+          },
+        },
+        Unexpanding: {
+          entry: raise({ type: 'UNEXPAND' }),
+          on: {
+            'UNEXPAND.DONE': {
+              target: 'Idle',
+            },
+          },
         },
       },
     },

@@ -61,10 +61,10 @@ export const scrollMachine = setup({
       ({ context }) => context.parent,
       () => ({ type: 'SCROLL.SLIDE.DONE' })
     ),
-    notifyScroll: sendTo(
+    notifyGetDone: sendTo(
       ({ context }) => context.parent,
       ({ context }) => ({
-        type: 'SCROLL',
+        type: 'SCROLL.GET.DONE',
         scroll: getScroll(context.ref.current),
       })
     ),
@@ -114,7 +114,7 @@ export const scrollMachine = setup({
         },
         GET: {
           actions: {
-            type: 'notifyScroll',
+            type: 'notifyGetDone',
           },
         },
       },
