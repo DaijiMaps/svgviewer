@@ -58,6 +58,7 @@ export type PointerContext = {
   focus: Vec
   mode: number
   expand: number
+  m: null | Vec
   z: number
   zoom: number
   touches: Touches
@@ -98,6 +99,8 @@ type PointerInternalEvent =
   | { type: 'UNEXPAND.DONE' }
   | { type: 'UNEXPAND.UNEXPANDED' }
   | { type: 'UNEXPAND.RENDERED' }
+  | { type: 'MOVE' }
+  | { type: 'MOVE.DONE' }
   | { type: 'ZOOM' }
   | { type: 'ZOOM.DONE' }
   | { type: 'SCROLL' }
@@ -239,6 +242,10 @@ export const pointerMachine = setup({
         type: 'GET',
       })
     },
+    moveKey: assign({
+      m: (_, { ev, relative }: { ev: KeyboardEvent; relative: number }): Vec =>
+        vecScale(keyToDir(ev.key), relative),
+    }),
     zoomKey: assign({
       z: (_, { ev }: { ev: KeyboardEvent }): number => keyToZoom(ev.key),
     }),
@@ -309,12 +316,11 @@ export const pointerMachine = setup({
     }),
     startMove: assign({
       animation: (
-        { context: { drag, animation } },
-        { ev, relative }: { ev: KeyboardEvent; relative: number }
+        { context: { drag, animation, m } },
       ): null | Animation =>
-        drag === null
+        drag === null || m === null
           ? animation
-          : animationMove(drag, vecScale(keyToDir(ev.key), relative)),
+          : animationMove(drag, m),
     }),
     endMove: assign({
       layout: ({ context: { layout, drag } }): Layout =>
@@ -363,6 +369,7 @@ export const pointerMachine = setup({
     focus: boxCenter(layout.container),
     mode: 0,
     expand: 1,
+    m: null,
     z: 0,
     zoom: 0,
     touches: resetTouches(),
@@ -409,14 +416,12 @@ export const pointerMachine = setup({
                   params: ({ event }) => ({ ev: event.ev }),
                 },
                 actions: [
-                  'startDrag',
                   {
-                    type: 'startMove',
+                    type: 'moveKey',
                     params: ({ event }) => ({ ev: event.ev, relative: 500 }),
                   },
                 ],
-                // XXX Moving
-                target: 'Animating',
+                target: 'Moving',
               },
             ],
             'KEY.UP': [
@@ -549,10 +554,10 @@ export const pointerMachine = setup({
             'TOUCH.DONE': { target: 'Idle' },
           },
         },
-        Animating: {
-          entry: raise({ type: 'ANIMATION' }),
+        Moving: {
+          entry: raise({ type: 'MOVE' }),
           on: {
-            'ANIMATION.DONE': {
+            'MOVE.DONE': {
               target: 'Idle',
             },
           },
@@ -965,10 +970,45 @@ export const pointerMachine = setup({
         },
       },
     },
+    Mover: {
+      initial: 'Idle',
+      states: {
+        Idle: {
+          entry: raise({ type: 'MOVE.DONE' }),
+          on: {
+            MOVE: {
+              actions: raise({ type: 'EXPAND', n: 3 }),
+              target: 'Expanding',
+            },
+          },
+        },
+        Expanding: {
+          on: {
+            'EXPAND.DONE': {
+              actions: ['startDrag', 'startMove'],
+              target: 'Animating',
+            },
+            'UNEXPAND.DONE': {
+              target: 'Idle',
+            },
+          },
+        },
+        Animating: {
+          entry: raise({ type: 'ANIMATION' }),
+          on: {
+            'ANIMATION.DONE': {
+              actions: raise({ type: 'UNEXPAND' }),
+              target: 'Expanding',
+            },
+          },
+        },
+      },
+    },
     Zoomer: {
       initial: 'Idle',
       states: {
         Idle: {
+          entry: raise({ type: 'ZOOM.DONE' }),
           on: {
             ZOOM: [
               {
@@ -990,27 +1030,19 @@ export const pointerMachine = setup({
               actions: 'startZoom',
               target: 'Animating',
             },
+            'UNEXPAND.DONE': {
+              target: 'Idle',
+            },
           },
         },
         Animating: {
           entry: raise({ type: 'ANIMATION' }),
           on: {
             'ANIMATION.DONE': {
-              target: 'Unexpanding',
+              actions: raise({ type: 'UNEXPAND' }),
+              target: 'Expanding',
             },
           },
-        },
-        Unexpanding: {
-          entry: raise({ type: 'UNEXPAND' }),
-          on: {
-            'UNEXPAND.DONE': {
-              target: 'Done',
-            },
-          },
-        },
-        Done: {
-          entry: raise({ type: 'ZOOM.DONE' }),
-          always: 'Idle',
         },
       },
     },
