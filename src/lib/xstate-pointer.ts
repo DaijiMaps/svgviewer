@@ -591,7 +591,6 @@ export const pointerMachine = setup({
         Expanding: {
           on: {
             'EXPAND.DONE': {
-              actions: raise({ type: 'SLIDE' }),
               target: 'Sliding',
             },
             'UNEXPAND.DONE': {
@@ -600,6 +599,7 @@ export const pointerMachine = setup({
           },
         },
         Sliding: {
+          entry: raise({ type: 'SLIDE' }),
           on: {
             'SLIDE.DONE': {
               actions: raise({ type: 'UNEXPAND' }),
@@ -717,6 +717,7 @@ export const pointerMachine = setup({
       initial: 'Unexpanded',
       states: {
         Unexpanded: {
+          entry: raise({ type: 'UNEXPAND.DONE' }),
           on: {
             EXPAND: {
               actions: {
@@ -772,7 +773,6 @@ export const pointerMachine = setup({
           tags: ['rendering'],
           on: {
             RENDERED: {
-              actions: raise({ type: 'UNEXPAND.DONE' }),
               target: 'Unexpanded',
             },
           },
@@ -817,7 +817,6 @@ export const pointerMachine = setup({
       initial: 'Inactive',
       states: {
         Inactive: {
-          entry: raise({ type: 'DRAG.DONE' }),
           on: {
             'POINTER.DOWN': {
               guard: 'idle',
@@ -837,6 +836,7 @@ export const pointerMachine = setup({
         },
         Dragging: {
           entry: raise({ type: 'DRAG' }),
+          exit: raise({ type: 'DRAG.DONE' }),
           on: {
             'POINTER.UP': {
               target: 'Inactive',
