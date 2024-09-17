@@ -114,6 +114,7 @@ export type PointerDOMEvent =
   | KeyboardEvent
 
 type PointerEventCick = { type: 'CLICK'; ev: MouseEvent }
+type PointerEventContextMenu = { type: 'CONTEXTMENU'; ev: MouseEvent }
 type PointerEventWheel = { type: 'WHEEL'; ev: WheelEvent }
 type PointerEventKeyDown = { type: 'KEY.DOWN'; ev: KeyboardEvent }
 type PointerEventKeyUp = { type: 'KEY.UP'; ev: KeyboardEvent }
@@ -128,6 +129,7 @@ type PointerEventTouchCancel = { type: 'TOUCH.CANCEL'; ev: TouchEvent }
 
 export type ReactPointerEvent =
   | PointerEventCick
+  | PointerEventContextMenu
   | PointerEventWheel
   | PointerEventPointerDown
   | PointerEventPointerMove
@@ -486,6 +488,9 @@ export const pointerMachine = setup({
               ],
               target: 'Idle',
             },
+            CONTEXTMENU: {
+              target: 'Scrolling',
+            },
             WHEEL: {
               guard: 'idle',
               actions: [
@@ -584,39 +589,6 @@ export const pointerMachine = setup({
           on: {
             'SCROLL.DONE': {
               target: 'Idle',
-            },
-          },
-        },
-      },
-    },
-    Dragger: {
-      initial: 'Inactive',
-      states: {
-        Inactive: {
-          exit: raise({ type: 'EXPAND', n: 3 }),
-          on: {
-            DRAG: {
-              guard: 'idle',
-              target: 'Expanding',
-            },
-          },
-        },
-        Expanding: {
-          on: {
-            'EXPAND.DONE': {
-              target: 'Sliding',
-            },
-            'UNEXPAND.DONE': {
-              target: 'Inactive',
-            },
-          },
-        },
-        Sliding: {
-          entry: raise({ type: 'SLIDE' }),
-          exit: raise({ type: 'UNEXPAND' }),
-          on: {
-            'SLIDE.DONE': {
-              target: 'Expanding',
             },
           },
         },
@@ -1030,6 +1002,39 @@ export const pointerMachine = setup({
         },
       },
     },
+    Dragger: {
+      initial: 'Inactive',
+      states: {
+        Inactive: {
+          on: {
+            DRAG: {
+              guard: 'idle',
+              actions: raise({ type: 'EXPAND', n: 3 }),
+              target: 'Expanding',
+            },
+          },
+        },
+        Expanding: {
+          on: {
+            'EXPAND.DONE': {
+              target: 'Sliding',
+            },
+            'UNEXPAND.DONE': {
+              target: 'Inactive',
+            },
+          },
+        },
+        Sliding: {
+          entry: raise({ type: 'SLIDE' }),
+          on: {
+            'SLIDE.DONE': {
+              actions: raise({ type: 'UNEXPAND' }),
+              target: 'Expanding',
+            },
+          },
+        },
+      },
+    },
     Scroller: {
       initial: 'Idle',
       states: {
@@ -1037,13 +1042,13 @@ export const pointerMachine = setup({
           entry: raise({ type: 'SCROLL.DONE' }),
           on: {
             SCROLL: {
+              // XXX expand to fit the whole map
               actions: raise({ type: 'EXPAND', n: 9 }),
               target: 'Expanding',
             },
           },
         },
         Expanding: {
-          // XXX expand to fit the whole map
           on: {
             'EXPAND.DONE': {
               actions: 'toggleMode',
@@ -1057,6 +1062,9 @@ export const pointerMachine = setup({
         Scrolling: {
           on: {
             CLICK: {
+              actions: ['toggleMode', 'getScroll'],
+            },
+            CONTEXTMENU: {
               actions: ['toggleMode', 'getScroll'],
             },
             'SCROLL.GET.DONE': {
