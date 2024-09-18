@@ -35,7 +35,12 @@ export default [
   },
   {
     ...functional.configs.recommended,
-    ignores: ['**/*.test.{js,ts}', '**/react-*.{js,ts}', '**/xstate-*.{js,ts}'],
+    ignores: [
+      'src/main.ts',
+      '**/*.test.{js,ts}',
+      '**/react-*.{js,ts}',
+      '**/xstate-*.{js,ts}',
+    ],
   },
   {
     ...functional.configs.strict,

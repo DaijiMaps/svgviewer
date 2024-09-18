@@ -1,4 +1,4 @@
-import { config } from './config'
+import { svgViewerConfig } from './config'
 import { toMatrixOuter } from './coord'
 import { Matrix } from './matrix'
 import { matrixEmpty, matrixScaleAt, matrixToString } from './matrix/prefixed'
@@ -17,6 +17,8 @@ export function modeStyle(pointer: Readonly<PointerState>) {
 .container {
   cursor: move;
   overflow: scroll;
+  will-change: scroll-position;
+  touch-action: pan-x pan-y;
 }
 `
 }
@@ -70,13 +72,13 @@ export function zoomStyle(pointer: Readonly<PointerState>) {
   return zd === 0 ? `` : css(q)
 }
 
-export const css = (q: Matrix) => {
+export const css = (q: Readonly<Matrix>) => {
   const p = matrixEmpty
 
   return `
 .svg {
   will-change: transform;
-  animation: xxx ${config.ANIMATION_DURATION}ms ease;
+  animation: xxx ${svgViewerConfig.animationDuration}ms ease;
 }
 @keyframes xxx {
   from {

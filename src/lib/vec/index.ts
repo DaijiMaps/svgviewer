@@ -1,4 +1,5 @@
 import { add, addF } from './add'
+import { angle, angleF } from './angle'
 import { copy } from './copy'
 import { dist, qdist } from './dist'
 import { div, divF } from './div'
@@ -17,6 +18,8 @@ export type { Vec, Vecs }
 export {
   add,
   addF,
+  angle,
+  angleF,
   compare,
   copy,
   dist,

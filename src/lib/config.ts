@@ -1,48 +1,48 @@
-import { configLayout } from './layout'
+import { Box } from './box/main'
 
-export const DIAG_VIEWBOX = {
-  x: 0,
-  y: 0,
-  width: 400,
-  height: 300,
+export interface SvgViewerConfig {
+  root: string
+  map: string
+  href: string
+  width: number
+  height: number
+  fontSize: number
+  origViewBox: Box
+  title: string
+  subtitle: string
+  copyright: string
+  zoomFactor: number
+  animationDuration: number
+  dragStepAlpha: number
+  dragStepStepLimit: number
+  dragStepMaxCount: number
 }
 
-export const MAP_VIEWBOX = {
-  x: -52,
-  y: -45,
-  width: 1928,
-  height: 1363,
+export type SvgViewerConfigUser = Partial<SvgViewerConfig>
+
+// eslint-disable-next-line functional/no-let, prefer-const
+export let svgViewerConfig: SvgViewerConfig = {
+  root: 'root',
+  map: 'map',
+  href: 'map.svg',
+  width: 0,
+  height: 0,
+  fontSize: 16,
+  origViewBox: { x: 0, y: 0, width: 0, height: 0 },
+  title: 'svgmapviewer',
+  subtitle: 'An (opinionated) interactive SVG map viewer',
+  copyright: '@ Daiji Maps',
+  zoomFactor: 2,
+  animationDuration: 625,
+  dragStepAlpha: 0.2,
+  dragStepStepLimit: 10,
+  dragStepMaxCount: 100,
 }
 
-const FONT_SIZE = 16
-const ANIMATION_DURATION = 625
-const WIDTH = MAP_VIEWBOX.width
-const HEIGHT = MAP_VIEWBOX.height
-const VIEWBOX = MAP_VIEWBOX
-
-const origViewBox = VIEWBOX
-
-const layoutConfig = configLayout(FONT_SIZE, origViewBox)
-
-// XXX
-// XXX
-// XXX
-const DRAG_STEP_ALPHA = 0.2
-const DRAG_STEP_LIMIT = 10
-const DRAG_STEP_MAX_COUNT = 100
-// XXX
-// XXX
-// XXX
-
-export const config = {
-  FONT_SIZE,
-  ANIMATION_DURATION,
-  WIDTH,
-  HEIGHT,
-  VIEWBOX,
-  origViewBox,
-  layoutConfig,
-  DRAG_STEP_ALPHA,
-  DRAG_STEP_LIMIT,
-  DRAG_STEP_MAX_COUNT,
+export function updateSvgViewerConfig(
+  config: Readonly<Partial<SvgViewerConfig>>
+  // eslint-disable-next-line functional/no-return-void
+): void {
+  // eslint-disable-next-line functional/no-expression-statements
+  svgViewerConfig = { ...svgViewerConfig, ...config }
 }

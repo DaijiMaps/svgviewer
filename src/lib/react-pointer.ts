@@ -1,6 +1,6 @@
 import { useMachine, useSelector } from '@xstate/react'
-import { RefObject, useCallback, useEffect } from 'react'
-import { config } from './config'
+import { RefObject, useCallback, useContext, useEffect } from 'react'
+import { SvgViewerConfigContext } from '../svgviewer'
 import { configLayout, makeLayout } from './layout'
 import { useWindowResize } from './react-resize'
 import {
@@ -10,9 +10,14 @@ import {
   ReactPointerEvent,
 } from './xstate-pointer'
 
-const selectLayout = (pointer: PointerState) => pointer.context.layout
-const selectFocus = (pointer: PointerState) => pointer.context.focus
-const selectTouches = (pointer: PointerState) => pointer.context.touches
+let pointereventmask: boolean = false
+let toucheventmask: boolean = false
+let wheeleventmask: boolean = false
+
+export const selectMode = (pointer: PointerState) => pointer.context.mode
+export const selectLayout = (pointer: PointerState) => pointer.context.layout
+export const selectFocus = (pointer: PointerState) => pointer.context.focus
+export const selectTouches = (pointer: PointerState) => pointer.context.touches
 
 const usePointerKey = (send: PointerSend) => {
   const keyDown = useCallback(
@@ -38,12 +43,13 @@ const usePointerKey = (send: PointerSend) => {
 
 export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
   const body = useWindowResize()
+  const config = useContext(SvgViewerConfigContext)
 
   const [pointer, pointerSend, pointerRef] = useMachine(pointerMachine, {
     input: {
       containerRef,
       layout: makeLayout(
-        configLayout(config.FONT_SIZE, config.origViewBox, body)
+        configLayout(config.fontSize, config.origViewBox, body)
       ),
     },
   })
@@ -59,7 +65,7 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
         body
       ),
     })
-  }, [body, pointerSend])
+  }, [body, config.origViewBox, pointerSend])
 
   usePointerKey(pointerSend)
 
@@ -81,19 +87,39 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
     [send]
   )
   const sendPointerUp = useCallback(
-    (ev: PointerEvent) => send({ type: 'POINTER.UP', ev }),
+    (ev: PointerEvent) => {
+      if (pointereventmask) {
+        return
+      }
+      send({ type: 'POINTER.UP', ev })
+    },
     [send]
   )
   const sendTouchStart = useCallback(
-    (ev: TouchEvent) => send({ type: 'TOUCH.START', ev }),
+    (ev: TouchEvent) => {
+      if (toucheventmask) {
+        return
+      }
+      send({ type: 'TOUCH.START', ev })
+    },
     [send]
   )
   const sendTouchMove = useCallback(
-    (ev: TouchEvent) => send({ type: 'TOUCH.MOVE', ev }),
+    (ev: TouchEvent) => {
+      if (toucheventmask) {
+        return
+      }
+      send({ type: 'TOUCH.MOVE', ev })
+    },
     [send]
   )
   const sendTouchEnd = useCallback(
-    (ev: TouchEvent) => send({ type: 'TOUCH.END', ev }),
+    (ev: TouchEvent) => {
+      if (toucheventmask) {
+        return
+      }
+      send({ type: 'TOUCH.END', ev })
+    },
     [send]
   )
   const sendClick = useCallback(
@@ -105,7 +131,12 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
     [send]
   )
   const sendWheel = useCallback(
-    (ev: WheelEvent) => send({ type: 'WHEEL', ev }),
+    (ev: WheelEvent) => {
+      if (wheeleventmask) {
+        return
+      }
+      send({ type: 'WHEEL', ev })
+    },
     [send]
   )
 
@@ -122,6 +153,7 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
     e.removeEventListener('touchend', sendTouchEnd)
     e.removeEventListener('click', sendClick)
     e.removeEventListener('contextmenu', sendContextMenuu)
+    e.removeEventListener('wheel', sendWheel)
     e.addEventListener('pointerdown', sendPointerDown)
     e.addEventListener('pointermove', sendPointerMove)
     e.addEventListener('pointerup', sendPointerUp)
@@ -130,6 +162,7 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
     e.addEventListener('touchend', sendTouchEnd)
     e.addEventListener('click', sendClick)
     e.addEventListener('contextmenu', sendContextMenuu)
+    e.addEventListener('wheel', sendWheel)
   }, [
     containerRef,
     sendClick,
@@ -140,6 +173,7 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
     sendTouchEnd,
     sendTouchMove,
     sendTouchStart,
+    sendWheel,
   ])
 
   const mode = useSelector(pointerRef, (snapshot) => snapshot.context.mode)
@@ -149,12 +183,9 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
     if (e === null) {
       return
     }
-    if (mode === 0) {
-      e.removeEventListener('wheel', sendWheel)
-      e.addEventListener('wheel', sendWheel)
-    } else {
-      e.removeEventListener('wheel', sendWheel)
-    }
+    pointereventmask = mode !== 0
+    toucheventmask = mode !== 0
+    wheeleventmask = mode !== 0
   }, [containerRef, mode, sendWheel])
 
   useEffect(() => {

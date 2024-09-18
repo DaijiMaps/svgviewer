@@ -1,6 +1,9 @@
 //// zoomToScale
 
-export const zoomToScale = (z: number) => Math.pow(2, z)
+import { svgViewerConfig } from './config'
+
+export const zoomToScale = (z: number) =>
+  Math.pow(svgViewerConfig.zoomFactor, z)
 
 //// isUndefined
 //// isNotUndefined

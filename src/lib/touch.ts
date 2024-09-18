@@ -9,7 +9,7 @@ import { Touch } from 'react'
 import { ReadonlyDeep } from 'type-fest'
 import { isUndefined } from './utils'
 import { dist } from './vec/dist'
-import { VecVec as Vec, vecMidpoint, vecOrd } from './vec/prefixed'
+import { VecVec as Vec, vecAngle, vecMidpoint, vecOrd } from './vec/prefixed'
 
 const vecsOrd = ReadonlyArray.getOrd<Vec>(vecOrd)
 
@@ -30,6 +30,7 @@ export type Touches = ReadonlyDeep<{
   focus: null | Vec
   dists: number[]
   z: null | number
+  horizontal: null | boolean
 }>
 
 function calcZoom([d0, d1, d2, d3]: Readonly<number[]>): null | number {
@@ -91,7 +92,11 @@ export function handleTouchStart(
   const vecs: Vecs = vecsMonoid.concat(touches.vecs, changesToVecs(ev))
   const points = vecsToPoints(vecs)
   const focus = pointsToFocus(points)
-  return { ...touches, vecs, points, focus }
+
+  const horizontal =
+    points.length !== 2 ? null : Math.abs(vecAngle(points[0], points[1])) < 0.5
+
+  return { ...touches, vecs, points, focus, horizontal }
 }
 
 export function handleTouchMove(
@@ -121,6 +126,7 @@ export function handleTouchMove(
     focus,
     dists,
     z,
+    horizontal: null,
   }
 }
 
@@ -143,6 +149,7 @@ export function handleTouchEnd(
     focus,
     dists: vecs.size === 0 ? [] : touches.dists,
     z: vecs.size === 0 ? null : touches.z,
+    horizontal: null,
   }
 }
 
@@ -153,6 +160,7 @@ export function resetTouches(): Touches {
     focus: null,
     dists: [],
     z: null,
+    horizontal: null,
   }
 }
 

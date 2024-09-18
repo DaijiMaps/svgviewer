@@ -171,6 +171,7 @@ export const pointerMachine = setup({
       isMultiTouchEnding(touches),
     isExpanded: ({ context }) => context.expand !== 1,
     isTouchZooming: ({ context }) => context.touches.z !== null,
+    isTouchHorizontal: ({ context }) => context.touches.horizontal === true,
     isMoving: ({ context: { animation } }) =>
       animation !== null && animation.move !== null,
     isZooming: ({ context: { animation } }) =>
@@ -182,24 +183,28 @@ export const pointerMachine = setup({
       stateIn({ Dragger: 'Inactive' }),
       stateIn({ Slider: { PointerHandler: 'Inactive' } }),
       stateIn({ Animator: 'Idle' }),
+      stateIn({ Scroller: 'Idle' }),
     ]),
     dragging: and([
       stateIn({ Pointer: 'Dragging' }),
       stateIn({ Dragger: 'Sliding' }),
       stateIn({ Slider: { PointerHandler: 'Inactive' } }),
       stateIn({ Animator: 'Idle' }),
+      stateIn({ Scroller: 'Idle' }),
     ]),
     touching: and([
       stateIn({ Pointer: 'Touching' }),
       stateIn({ Dragger: 'Inactive' }),
       stateIn({ Slider: { PointerHandler: 'Inactive' } }),
       stateIn({ Animator: 'Idle' }),
+      stateIn({ Scroller: 'Idle' }),
     ]),
     sliding: and([
       stateIn({ Pointer: 'Dragging' }),
       stateIn({ Dragger: 'Sliding' }),
       stateIn({ Slider: { PointerHandler: 'Active' } }),
       stateIn({ Animator: 'Idle' }),
+      stateIn({ Scroller: 'Idle' }),
     ]),
     slidingDragBusy: and([
       stateIn({ Pointer: 'Dragging' }),
@@ -207,6 +212,14 @@ export const pointerMachine = setup({
       stateIn({ Slider: { PointerHandler: 'Active' } }),
       stateIn({ Slider: { ScrollHandler: 'Busy' } }),
       stateIn({ Animator: 'Idle' }),
+      stateIn({ Scroller: 'Idle' }),
+    ]),
+    scrolling: and([
+      stateIn({ Pointer: 'Scrolling' }),
+      stateIn({ Dragger: 'Inactive' }),
+      stateIn({ Slider: { PointerHandler: 'Inactive' } }),
+      stateIn({ Animator: 'Idle' }),
+      stateIn({ Scroller: 'Scrolling' }),
     ]),
   },
   actions: {
@@ -402,12 +415,14 @@ export const pointerMachine = setup({
         Idle: {
           on: {
             LAYOUT: {
+              guard: 'idle',
               actions: {
                 type: 'layout',
                 params: ({ event: { config } }) => ({ config }),
               },
             },
             'LAYOUT.RESET': {
+              guard: 'idle',
               actions: ['resetLayout', 'resetFocus'],
             },
             DEBUG: {
@@ -553,6 +568,7 @@ export const pointerMachine = setup({
         Dragging: {
           on: {
             TOUCH: { target: 'DraggingToTouching' },
+            SCROLL: { target: 'DraggingToScrolling' },
             'DRAG.DONE': { target: 'Idle' },
           },
         },
@@ -581,6 +597,13 @@ export const pointerMachine = setup({
           on: {
             'ZOOM.DONE': {
               target: 'Idle',
+            },
+          },
+        },
+        DraggingToScrolling: {
+          on: {
+            'DRAG.DONE': {
+              target: 'Scrolling',
             },
           },
         },
@@ -804,6 +827,18 @@ export const pointerMachine = setup({
             'POINTER.UP': {
               target: 'Inactive',
             },
+            // XXX CONTEXTMENU always accompanies with POINTER.MOVE
+            // XXX resulting in transition to Dragging
+            // XXX catch CONTEXTMENU here to avoid that
+            // XXX otherwise PointerMonitor is in Dragging during SCROLL
+            // XXX and still there after exiting SCROLL
+            CONTEXTMENU: {
+              target: 'Inactive',
+            },
+            'TOUCH.START.DONE': {
+              guard: 'isTouchHorizontal',
+              target: 'Inactive',
+            },
           },
         },
         Dragging: {
@@ -870,19 +905,26 @@ export const pointerMachine = setup({
         Inactive: {
           entry: raise({ type: 'TOUCH.DONE' }),
           on: {
-            'TOUCH.START.DONE': {
-              guard: 'isMultiTouch',
-              actions: raise({ type: 'DRAG.CANCEL' }),
-              target: 'Active',
-            },
+            'TOUCH.START.DONE': [
+              {
+                guard: 'isTouchHorizontal',
+                actions: raise({ type: 'DRAG.CANCEL' }),
+                target: 'Scrolling',
+              },
+              {
+                guard: 'isMultiTouch',
+                actions: raise({ type: 'DRAG.CANCEL' }),
+                target: 'Touching',
+              },
+            ],
             'TOUCH.MOVE.DONE': {
               guard: 'isMultiTouch',
               actions: raise({ type: 'DRAG.CANCEL' }),
-              target: 'Active',
+              target: 'Touching',
             },
           },
         },
-        Active: {
+        Touching: {
           entry: [raise({ type: 'TOUCH' })],
           on: {
             'TOUCH.MOVE.DONE': [
@@ -914,9 +956,18 @@ export const pointerMachine = setup({
               },
               {
                 actions: 'discardTouches',
-                target: 'Active',
+                target: 'Touching',
               },
             ],
+          },
+        },
+        Scrolling: {
+          entry: [raise({ type: 'SCROLL' })],
+          on: {
+            'SCROLL.DONE': {
+              actions: 'resetTouches',
+              target: 'Inactive',
+            },
           },
         },
       },

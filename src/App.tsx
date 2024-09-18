@@ -1,11 +1,18 @@
+import { useContext } from 'react'
 import './App.css'
-import { config } from './lib/config'
+import { SvgViewerConfigContext } from './svgviewer'
 import { Viewer } from './Viewer'
 
 function App() {
+  const config = useContext(SvgViewerConfigContext)
+
   return (
     <Viewer>
-      <use width={config.WIDTH} height={config.HEIGHT} href="#Map1" />
+      <use
+        href={`#${config.map}`}
+        width={config.width}
+        height={config.height}
+      />
     </Viewer>
   )
 }

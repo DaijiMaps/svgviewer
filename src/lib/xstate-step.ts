@@ -1,6 +1,6 @@
 import { ActorRefFrom, AnyActorRef, assign, sendTo, setup } from 'xstate'
 import { BoxBox as Box } from './box/prefixed'
-import { config } from './config'
+import { svgViewerConfig } from './config'
 import { isDefined, isNotNull } from './utils'
 import { vecInterpolate } from './vec/prefixed'
 import { animationFrameLogic } from './xstate-animation-frame'
@@ -108,9 +108,9 @@ export const stepMachine = setup({
   context: ({ input: { parent, cb, alpha, limit, maxCount } }) => ({
     parent,
     cb,
-    alpha: isDefined(alpha) ? alpha : config.DRAG_STEP_ALPHA,
-    limit: isDefined(limit) ? limit : config.DRAG_STEP_LIMIT,
-    maxCount: isDefined(maxCount) ? maxCount : config.DRAG_STEP_MAX_COUNT,
+    alpha: isDefined(alpha) ? alpha : svgViewerConfig.dragStepAlpha,
+    limit: isDefined(limit) ? limit : svgViewerConfig.dragStepStepLimit,
+    maxCount: isDefined(maxCount) ? maxCount : svgViewerConfig.dragStepMaxCount,
     P: null,
     Q: null,
     count: 0,

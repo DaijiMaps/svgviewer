@@ -1,19 +1,33 @@
 {
-  "name": "svgviewer",
-  "private": true,
+  "name": "@daijimaps/svgmapviewer",
+  "private": "false",
   "version": "0.0.0",
+  "keywords": [
+    "SVG",
+    "map",
+    "viewer"
+  ],
+  "author": "Daiji Maps",
+  "license": "ISC",
   "type": "module",
+  "main": "index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "./dist"
+  ],
   "scripts": {
     "dev": "vite",
     "dev:host": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",
+    "build:asas": "tsc -b && vite build --config vite.config-asas.ts",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest --workspace=vitest.workspace.ts --project unit",
     "test:unit": "vitest --workspace=vitest.workspace.ts --project unit",
     "test:jsdom": "vitest --workspace=vitest.workspace.ts --project jsdom",
     "test:browser": "vitest --workspace=vitest.workspace.ts --project browser",
-    "pages:deploy": "pnpm build && cd dist && wrangler pages deploy ."
+    "pages:deploy:asas": "pnpm build:asas && cd dist && wrangler pages deploy ."
   },
   "dependencies": {
     "@xstate/react": "^4.1.2",
@@ -30,26 +44,28 @@
   "devDependencies": {
     "@eslint/js": "^9.10.0",
     "@testing-library/react": "^16.0.1",
-    "@types/react": "^18.3.5",
+    "@types/react": "^18.3.7",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
-    "@vitest/browser": "^2.0.5",
+    "@vitest/browser": "^2.1.1",
     "eslint": "^9.10.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-functional": "^7.0.2",
     "eslint-plugin-prettier": "^5.2.1",
-    "eslint-plugin-react": "^7.36.0",
+    "eslint-plugin-react": "^7.36.1",
     "eslint-plugin-react-hooks": "5.1.0-rc-fb9a90fa48-20240614",
-    "eslint-plugin-react-refresh": "^0.4.11",
+    "eslint-plugin-react-refresh": "^0.4.12",
     "globals": "^15.9.0",
     "jsdom": "^25.0.0",
-    "playwright": "^1.47.0",
+    "playwright": "^1.47.1",
     "prettier": "3.3.3",
     "prettier-plugin-organize-imports": "^4.0.0",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^5.6.2",
-    "typescript-eslint": "^8.5.0",
-    "vite": "^5.4.4",
-    "vitest": "^2.0.5"
+    "typescript": "^5.5.4",
+    "typescript-eslint": "^8.6.0",
+    "vite": "^5.4.6",
+    "vite-plugin-dts": "^4.2.1",
+    "vite-plugin-lib-inject-css": "^2.1.1",
+    "vitest": "^2.1.1"
   }
 }

@@ -1,23 +1,15 @@
 import { Cursor } from './Cursor'
 import './Guides.css'
-import { Layout } from './lib/layout'
-import { Touches } from './lib/touch'
-import { Vec } from './lib/vec'
+import { PointerRef } from './lib/xstate-pointer'
 
 export interface GuidesProps {
-  _layout: Layout
-  _focus: Vec
-  _touches: Touches
+  _pointerRef: PointerRef
 }
 
 export function Guides(props: Readonly<GuidesProps>) {
   return (
     <svg className="guides">
-      <Cursor
-        _layout={props._layout}
-        _focus={props._focus}
-        _touches={props._touches}
-      />
+      <Cursor _pointerRef={props._pointerRef} />
     </svg>
   )
 }
