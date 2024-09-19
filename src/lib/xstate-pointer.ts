@@ -192,13 +192,6 @@ export const pointerMachine = setup({
       stateIn({ Animator: 'Idle' }),
       stateIn({ Panner: 'Idle' }),
     ]),
-    touching: and([
-      stateIn({ Pointer: 'Touching' }),
-      stateIn({ Dragger: 'Inactive' }),
-      stateIn({ Slider: { PointerHandler: 'Inactive' } }),
-      stateIn({ Animator: 'Idle' }),
-      stateIn({ Panner: 'Idle' }),
-    ]),
     sliding: and([
       stateIn({ Pointer: 'Dragging' }),
       stateIn({ Dragger: 'Sliding' }),
@@ -214,8 +207,15 @@ export const pointerMachine = setup({
       stateIn({ Animator: 'Idle' }),
       stateIn({ Panner: 'Idle' }),
     ]),
+    touching: and([
+      stateIn({ Pointer: { Touching: 'Touching' } }),
+      stateIn({ Dragger: 'Inactive' }),
+      stateIn({ Slider: { PointerHandler: 'Inactive' } }),
+      stateIn({ Animator: 'Idle' }),
+      stateIn({ Panner: 'Idle' }),
+    ]),
     panning: and([
-      stateIn({ Pointer: 'Panning' }),
+      stateIn({ Pointer: { Touching: 'Panning' } }),
       stateIn({ Dragger: 'Inactive' }),
       stateIn({ Slider: { PointerHandler: 'Inactive' } }),
       stateIn({ Animator: 'Idle' }),
@@ -474,7 +474,7 @@ export const pointerMachine = setup({
                   type: 'shouldToggleMode',
                   params: ({ event }) => ({ ev: event.ev }),
                 },
-                target: 'Panning',
+                target: 'Touching.Panning',
               },
               {
                 guard: not('idle'),
@@ -504,7 +504,7 @@ export const pointerMachine = setup({
               target: 'Idle',
             },
             CONTEXTMENU: {
-              target: 'Panning',
+              target: 'Touching.Panning',
             },
             WHEEL: {
               guard: 'idle',
@@ -533,10 +533,10 @@ export const pointerMachine = setup({
               },
               {
                 guard: 'isTouchHorizontal',
-                target: 'Panning',
+                target: 'Touching.Panning',
               },
               {
-                target: 'Touching',
+                target: 'Touching.Touching',
               },
             ],
           },
@@ -575,33 +575,50 @@ export const pointerMachine = setup({
         },
         Dragging: {
           on: {
-            TOUCH: { target: 'DraggingToTouching' },
+            TOUCH: { target: 'Touching' },
             'DRAG.DONE': { target: 'Idle' },
           },
         },
-        DraggingToTouching: {
-          on: {
-            'DRAG.DONE': {
-              target: 'DraggingToTouching2',
-            },
-          },
-        },
-        DraggingToTouching2: {
-          on: {
-            'UNEXPAND.DONE': [
-              {
-                guard: 'isTouchHorizontal',
-                target: 'Panning',
-              },
-              {
-                target: 'Touching',
-              },
-            ],
-          },
-        },
         Touching: {
-          on: {
-            'TOUCH.DONE': { target: 'Idle' },
+          initial: 'WaitForDragDone',
+          onDone: 'Idle',
+          states: {
+            WaitForDragDone: {
+              on: {
+                'DRAG.DONE': {
+                  target: 'WaitForUnexpandDone',
+                },
+              },
+            },
+            WaitForUnexpandDone: {
+              on: {
+                'UNEXPAND.DONE': [
+                  {
+                    guard: 'isTouchHorizontal',
+                    target: 'Panning',
+                  },
+                  {
+                    target: 'Touching',
+                  },
+                ],
+              },
+            },
+            Touching: {
+              on: {
+                'TOUCH.DONE': { target: 'Done' },
+              },
+            },
+            Panning: {
+              entry: raise({ type: 'PAN' }),
+              on: {
+                'PAN.DONE': {
+                  target: 'Done',
+                },
+              },
+            },
+            Done: {
+              type: 'final',
+            },
           },
         },
         Moving: {
@@ -616,14 +633,6 @@ export const pointerMachine = setup({
           entry: raise({ type: 'ZOOM' }),
           on: {
             'ZOOM.DONE': {
-              target: 'Idle',
-            },
-          },
-        },
-        Panning: {
-          entry: raise({ type: 'PAN' }),
-          on: {
-            'PAN.DONE': {
               target: 'Idle',
             },
           },

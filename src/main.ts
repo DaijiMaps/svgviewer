@@ -7,7 +7,7 @@ svgviewer({
   href: asas,
   width: 1928,
   height: 1363,
-  zoomFactor: 4,
+  zoomFactor: 3,
 })
 
 document.title = `svgmapviewer @ ${window.location.host}`
