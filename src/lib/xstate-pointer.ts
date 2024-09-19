@@ -103,8 +103,8 @@ type PointerInternalEvent =
   | { type: 'MOVE.DONE' }
   | { type: 'ZOOM' }
   | { type: 'ZOOM.DONE' }
-  | { type: 'SCROLL' }
-  | { type: 'SCROLL.DONE' }
+  | { type: 'PAN' }
+  | { type: 'PAN.DONE' }
 
 export type PointerDOMEvent =
   | MouseEvent
@@ -183,28 +183,28 @@ export const pointerMachine = setup({
       stateIn({ Dragger: 'Inactive' }),
       stateIn({ Slider: { PointerHandler: 'Inactive' } }),
       stateIn({ Animator: 'Idle' }),
-      stateIn({ Scroller: 'Idle' }),
+      stateIn({ Panner: 'Idle' }),
     ]),
     dragging: and([
       stateIn({ Pointer: 'Dragging' }),
       stateIn({ Dragger: 'Sliding' }),
       stateIn({ Slider: { PointerHandler: 'Inactive' } }),
       stateIn({ Animator: 'Idle' }),
-      stateIn({ Scroller: 'Idle' }),
+      stateIn({ Panner: 'Idle' }),
     ]),
     touching: and([
       stateIn({ Pointer: 'Touching' }),
       stateIn({ Dragger: 'Inactive' }),
       stateIn({ Slider: { PointerHandler: 'Inactive' } }),
       stateIn({ Animator: 'Idle' }),
-      stateIn({ Scroller: 'Idle' }),
+      stateIn({ Panner: 'Idle' }),
     ]),
     sliding: and([
       stateIn({ Pointer: 'Dragging' }),
       stateIn({ Dragger: 'Sliding' }),
       stateIn({ Slider: { PointerHandler: 'Active' } }),
       stateIn({ Animator: 'Idle' }),
-      stateIn({ Scroller: 'Idle' }),
+      stateIn({ Panner: 'Idle' }),
     ]),
     slidingDragBusy: and([
       stateIn({ Pointer: 'Dragging' }),
@@ -212,14 +212,14 @@ export const pointerMachine = setup({
       stateIn({ Slider: { PointerHandler: 'Active' } }),
       stateIn({ Slider: { ScrollHandler: 'Busy' } }),
       stateIn({ Animator: 'Idle' }),
-      stateIn({ Scroller: 'Idle' }),
+      stateIn({ Panner: 'Idle' }),
     ]),
-    scrolling: and([
-      stateIn({ Pointer: 'Scrolling' }),
+    panning: and([
+      stateIn({ Pointer: 'Panning' }),
       stateIn({ Dragger: 'Inactive' }),
       stateIn({ Slider: { PointerHandler: 'Inactive' } }),
       stateIn({ Animator: 'Idle' }),
-      stateIn({ Scroller: 'Scrolling' }),
+      stateIn({ Panner: 'Panning' }),
     ]),
   },
   actions: {
@@ -474,7 +474,7 @@ export const pointerMachine = setup({
                   type: 'shouldToggleMode',
                   params: ({ event }) => ({ ev: event.ev }),
                 },
-                target: 'Scrolling',
+                target: 'Panning',
               },
               {
                 guard: not('idle'),
@@ -504,7 +504,7 @@ export const pointerMachine = setup({
               target: 'Idle',
             },
             CONTEXTMENU: {
-              target: 'Scrolling',
+              target: 'Panning',
             },
             WHEEL: {
               guard: 'idle',
@@ -527,10 +527,18 @@ export const pointerMachine = setup({
               guard: 'idle',
               target: 'Dragging',
             },
-            TOUCH: {
-              guard: 'idle',
-              target: 'Touching',
-            },
+            TOUCH: [
+              {
+                guard: not('idle'),
+              },
+              {
+                guard: 'isTouchHorizontal',
+                target: 'Panning',
+              },
+              {
+                target: 'Touching',
+              },
+            ],
           },
         },
         Expanding: {
@@ -568,15 +576,27 @@ export const pointerMachine = setup({
         Dragging: {
           on: {
             TOUCH: { target: 'DraggingToTouching' },
-            SCROLL: { target: 'DraggingToScrolling' },
             'DRAG.DONE': { target: 'Idle' },
           },
         },
         DraggingToTouching: {
           on: {
             'DRAG.DONE': {
-              target: 'Touching',
+              target: 'DraggingToTouching2',
             },
+          },
+        },
+        DraggingToTouching2: {
+          on: {
+            'UNEXPAND.DONE': [
+              {
+                guard: 'isTouchHorizontal',
+                target: 'Panning',
+              },
+              {
+                target: 'Touching',
+              },
+            ],
           },
         },
         Touching: {
@@ -600,17 +620,10 @@ export const pointerMachine = setup({
             },
           },
         },
-        DraggingToScrolling: {
+        Panning: {
+          entry: raise({ type: 'PAN' }),
           on: {
-            'DRAG.DONE': {
-              target: 'Scrolling',
-            },
-          },
-        },
-        Scrolling: {
-          entry: raise({ type: 'SCROLL' }),
-          on: {
-            'SCROLL.DONE': {
+            'PAN.DONE': {
               target: 'Idle',
             },
           },
@@ -830,8 +843,8 @@ export const pointerMachine = setup({
             // XXX CONTEXTMENU always accompanies with POINTER.MOVE
             // XXX resulting in transition to Dragging
             // XXX catch CONTEXTMENU here to avoid that
-            // XXX otherwise PointerMonitor is in Dragging during SCROLL
-            // XXX and still there after exiting SCROLL
+            // XXX otherwise PointerMonitor is in Dragging during PAN
+            // XXX and still there after exiting PAN
             CONTEXTMENU: {
               target: 'Inactive',
             },
@@ -907,11 +920,6 @@ export const pointerMachine = setup({
           on: {
             'TOUCH.START.DONE': [
               {
-                guard: 'isTouchHorizontal',
-                actions: raise({ type: 'DRAG.CANCEL' }),
-                target: 'Scrolling',
-              },
-              {
                 guard: 'isMultiTouch',
                 actions: raise({ type: 'DRAG.CANCEL' }),
                 target: 'Touching',
@@ -929,10 +937,6 @@ export const pointerMachine = setup({
           on: {
             'TOUCH.MOVE.DONE': [
               {
-                guard: not('touching'),
-                target: 'Inactive',
-              },
-              {
                 guard: and(['touching', 'isTouchZooming']),
                 actions: 'zoomTouches',
                 target: 'Zooming',
@@ -942,6 +946,9 @@ export const pointerMachine = setup({
               guard: 'isMultiTouchEnding',
               actions: 'resetTouches',
               target: 'Inactive',
+            },
+            PAN: {
+              target: 'Panning',
             },
           },
         },
@@ -961,10 +968,9 @@ export const pointerMachine = setup({
             ],
           },
         },
-        Scrolling: {
-          entry: [raise({ type: 'SCROLL' })],
+        Panning: {
           on: {
-            'SCROLL.DONE': {
+            'PAN.DONE': {
               actions: 'resetTouches',
               target: 'Inactive',
             },
@@ -1086,13 +1092,13 @@ export const pointerMachine = setup({
         },
       },
     },
-    Scroller: {
+    Panner: {
       initial: 'Idle',
       states: {
         Idle: {
-          entry: raise({ type: 'SCROLL.DONE' }),
+          entry: raise({ type: 'PAN.DONE' }),
           on: {
-            SCROLL: {
+            PAN: {
               // XXX expand to fit the whole map
               actions: raise({ type: 'EXPAND', n: 9 }),
               target: 'Expanding',
@@ -1103,14 +1109,14 @@ export const pointerMachine = setup({
           on: {
             'EXPAND.DONE': {
               actions: 'toggleMode',
-              target: 'Scrolling',
+              target: 'Panning',
             },
             'UNEXPAND.DONE': {
               target: 'Idle',
             },
           },
         },
-        Scrolling: {
+        Panning: {
           on: {
             CLICK: {
               actions: ['toggleMode', 'getScroll'],

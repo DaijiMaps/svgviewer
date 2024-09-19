@@ -126,7 +126,7 @@ export function handleTouchMove(
     focus,
     dists,
     z,
-    horizontal: null,
+    horizontal: touches.horizontal,
   }
 }
 
@@ -149,7 +149,7 @@ export function handleTouchEnd(
     focus,
     dists: vecs.size === 0 ? [] : touches.dists,
     z: vecs.size === 0 ? null : touches.z,
-    horizontal: null,
+    horizontal: touches.horizontal,
   }
 }
 

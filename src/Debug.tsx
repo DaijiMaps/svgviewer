@@ -21,13 +21,16 @@ export const Debug = (props: Readonly<DebugProps>) => {
       <ul>
         {[
           ['Pointer', pointer.value.Pointer],
-          ['Dragger', pointer.value.Dragger],
           ['Slider.PointerHandler', pointer.value.Slider.PointerHandler],
           ['Slider.ScrollHandler', pointer.value.Slider.ScrollHandler],
           ['Expander', pointer.value.Expander],
           ['Animator', pointer.value.Animator],
           ['PointerMonitor', pointer.value.PointerMonitor],
           ['TouchMonitor', pointer.value.TouchMonitor],
+          ['Mover', pointer.value.Mover],
+          ['Zoomer', pointer.value.Zoomer],
+          ['Dragger', pointer.value.Dragger],
+          ['Panner', pointer.value.Panner],
         ].map(([k, v], i) => (
           <li key={i}>
             {k as string}: {typeof v === 'string' ? v : JSON.stringify(v)}
