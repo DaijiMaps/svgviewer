@@ -16,8 +16,8 @@ export const Header = (props: Readonly<HeaderProps>) => {
       // eslint-disable-next-line functional/no-return-void
       onClick={() => props._pointerSend({ type: 'LAYOUT.RESET' })}
     >
-      <h1>{config.title}</h1>
       <h2>{config.subtitle}</h2>
+      <h1>{config.title}</h1>
     </div>
   )
 }

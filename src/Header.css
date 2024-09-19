@@ -15,3 +15,7 @@
 .header > h2 {
   margin: 0.25em;
 }
+
+.header > h2 {
+  font-size: small;
+}
