@@ -17,8 +17,8 @@
     "./dist"
   ],
   "scripts": {
-    "dev:asas": "vite --config vite.config-asas.ts",
-    "dev:host:asas": "vite --config vite.config-asas.ts --host 0.0.0.0",
+    "dev": "vite",
+    "dev:host": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",
     "build:asas": "tsc -b && vite build --config vite.config-asas.ts",
     "lint": "eslint .",
@@ -35,7 +35,10 @@
     "fp-ts": "^2.16.9",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "transformation-matrix": "^2.16.1",
+    "two.js": "^0.8.14",
     "type-fest": "^4.26.1",
+    "usehooks-ts": "^3.1.0",
     "xstate": "^5.18.1"
   },
   "devDependencies": {

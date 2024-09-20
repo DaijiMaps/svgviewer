@@ -15,7 +15,7 @@ export default defineConfig({
       fileName: 'index',
     },
     rollupOptions: {
-      external: ['react', 'react-dom', 'xstate', '@xstate/react'],
+      external: ['react', 'react-dom'],
     },
   },
   plugins: [

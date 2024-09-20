@@ -22,9 +22,18 @@ importers:
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
+      transformation-matrix:
+        specifier: ^2.16.1
+        version: 2.16.1
+      two.js:
+        specifier: ^0.8.14
+        version: 0.8.14
       type-fest:
         specifier: ^4.26.1
         version: 4.26.1
+      usehooks-ts:
+        specifier: ^3.1.0
+        version: 3.1.0(react@18.3.1)
       xstate:
         specifier: ^5.18.1
         version: 5.18.1
@@ -2779,6 +2788,12 @@ packages:
       }
     engines: { node: '>=10' }
 
+  lodash.debounce@4.0.8:
+    resolution:
+      {
+        integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==,
+      }
+
   lodash.merge@4.6.2:
     resolution:
       {
@@ -3668,6 +3683,12 @@ packages:
       }
     engines: { node: '>=18' }
 
+  transformation-matrix@2.16.1:
+    resolution:
+      {
+        integrity: sha512-tdtC3wxVEuzU7X/ydL131Q3JU5cPMEn37oqVLITjRDSDsnSHVFzW2JiCLfZLIQEgWzZHdSy3J6bZzvKEN24jGA==,
+      }
+
   ts-api-utils@1.3.0:
     resolution:
       {
@@ -3698,6 +3719,12 @@ packages:
       }
     engines: { node: '>=4.0.0' }
     hasBin: true
+
+  two.js@0.8.14:
+    resolution:
+      {
+        integrity: sha512-l8z10ssKjrJSLbDL0Uoy4CNlML377ubIy2J1kxkAsKkE+ToiUDAvueLmDvVAngFh2fib5HtOWTr9fVIQEVw3vw==,
+      }
 
   type-check@0.4.0:
     resolution:
@@ -3848,6 +3875,15 @@ packages:
       }
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
+
+  usehooks-ts@3.1.0:
+    resolution:
+      {
+        integrity: sha512-bBIa7yUyPhE1BCc0GmR96VU/15l/9gP1Ch5mYdLcFBaFGQsdmXkvjV0TtOqW1yUd6VjIwDunm+flSciCQXujiw==,
+      }
+    engines: { node: '>=16.15.0' }
+    peerDependencies:
+      react: ^16.8.0  || ^17 || ^18
 
   vite-node@2.1.1:
     resolution:
@@ -5862,6 +5898,8 @@ snapshots:
     dependencies:
       p-locate: 5.0.0
 
+  lodash.debounce@4.0.8: {}
+
   lodash.merge@4.6.2: {}
 
   lodash@4.17.21: {}
@@ -6368,6 +6406,8 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
+  transformation-matrix@2.16.1: {}
+
   ts-api-utils@1.3.0(typescript@5.5.4):
     dependencies:
       typescript: 5.5.4
@@ -6380,6 +6420,8 @@ snapshots:
   tslib@2.7.0: {}
 
   tslint-config-prettier@1.18.0: {}
+
+  two.js@0.8.14: {}
 
   type-check@0.4.0:
     dependencies:
@@ -6474,6 +6516,11 @@ snapshots:
 
   use-sync-external-store@1.2.2(react@18.3.1):
     dependencies:
+      react: 18.3.1
+
+  usehooks-ts@3.1.0(react@18.3.1):
+    dependencies:
+      lodash.debounce: 4.0.8
       react: 18.3.1
 
   vite-node@2.1.1(@types/node@22.5.5):

@@ -1,12 +1,12 @@
-import tama from './assets/tama.svg'
+import asas from './assets/asas.svg'
 import { svgviewer } from './svgviewer'
 
 svgviewer({
   root: 'root',
   map: 'map1',
-  href: tama,
-  width: 2341.04,
-  height: 1683.4,
+  href: asas,
+  width: 1928,
+  height: 1363,
   zoomFactor: 3,
 })
 
