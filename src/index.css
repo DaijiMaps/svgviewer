@@ -9,6 +9,8 @@
   font-family: sans-serif;
   font-weight: lighter;
   box-sizing: border-box;
+  text-rendering: optimizeSpeed;
+  shape-rendering: optimizeSpeed;
 }
 
 body {
