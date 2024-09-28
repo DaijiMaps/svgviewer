@@ -9,11 +9,14 @@
   align-items: center;
   justify-content: center;
   font-size: smaller;
+  pointer-events: none;
 }
 
 .header > h1,
 .header > h2 {
   margin: 0.25em;
+  pointer-events: initial;
+  cursor: default;
 }
 
 .header > h2 {

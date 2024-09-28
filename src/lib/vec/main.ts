@@ -1,10 +1,12 @@
 import { ReadonlyDeep } from 'type-fest'
 import { ImmutableShallow } from '../utils'
 
-type Vec = ImmutableShallow<{
-  x: number
-  y: number
-}>
+type Vec = Readonly<
+  ImmutableShallow<{
+    x: number
+    y: number
+  }>
+>
 
 type Vecs = ReadonlyDeep<Vec[]>
 

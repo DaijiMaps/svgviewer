@@ -1,14 +1,14 @@
 import { useContext } from 'react'
 import './Footer.css'
 import { PointerSend } from './lib/xstate-pointer'
-import { SvgViewerConfigContext } from './svgviewer'
+import { SvgMapViewerConfigContext } from './svgmapviewer'
 
 interface FooterProps {
   _pointerSend: PointerSend
 }
 
 export const Footer = (props: Readonly<FooterProps>) => {
-  const config = useContext(SvgViewerConfigContext)
+  const config = useContext(SvgMapViewerConfigContext)
 
   return (
     <div

@@ -1,8 +1,10 @@
 import { useMachine, useSelector } from '@xstate/react'
 import { RefObject, useCallback, useContext, useEffect } from 'react'
-import { SvgViewerConfigContext } from '../svgviewer'
+import { SvgMapViewerConfigContext } from '../svgmapviewer'
+import { getSvgMapViewerConfig, svgMapViewerConfig } from './config'
 import { configLayout, makeLayout } from './layout'
 import { useWindowResize } from './react-resize'
+import { Vec } from './vec'
 import {
   pointerMachine,
   PointerSend,
@@ -13,11 +15,13 @@ import {
 let pointereventmask: boolean = false
 let toucheventmask: boolean = false
 let wheeleventmask: boolean = false
+let clickeventmask: boolean = false
 
 export const selectMode = (pointer: PointerState) => pointer.context.mode
 export const selectLayout = (pointer: PointerState) => pointer.context.layout
 export const selectFocus = (pointer: PointerState) => pointer.context.focus
 export const selectTouches = (pointer: PointerState) => pointer.context.touches
+export const selectLocked = (pointer: PointerState) => pointer.context.locked
 
 const usePointerKey = (send: PointerSend) => {
   const keyDown = useCallback(
@@ -43,7 +47,7 @@ const usePointerKey = (send: PointerSend) => {
 
 export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
   const body = useWindowResize()
-  const config = useContext(SvgViewerConfigContext)
+  const config = useContext(SvgMapViewerConfigContext)
 
   const [pointer, pointerSend, pointerRef] = useMachine(pointerMachine, {
     input: {
@@ -51,8 +55,26 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
       layout: makeLayout(
         configLayout(config.fontSize, config.origViewBox, body)
       ),
+      searchCb: (p: Vec, psvg: Vec) =>
+        getSvgMapViewerConfig().searchStartCbs.forEach((cb) => cb(p, psvg)),
+      lockCb: (ok: boolean) =>
+        getSvgMapViewerConfig().uiOpenDoneCbs.forEach((cb) => cb(ok)),
     },
   })
+
+  const pointerSearchLock = useCallback(
+    (p: Vec, psvg: Vec) => pointerSend({ type: 'SEARCH.LOCK', p, psvg }),
+    [pointerSend]
+  )
+  const pointerSearchUnlock = useCallback(
+    () => pointerSend({ type: 'SEARCH.UNLOCK' }),
+    [pointerSend]
+  )
+
+  useEffect(() => {
+    svgMapViewerConfig.uiOpenCbs.push(pointerSearchLock)
+    svgMapViewerConfig.uiCloseDoneCbs.push(pointerSearchUnlock)
+  }, [pointerSearchLock, pointerSearchUnlock])
 
   useEffect(() => {
     const style = getComputedStyle(document.body)
@@ -70,9 +92,23 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
   usePointerKey(pointerSend)
 
   const send = useCallback(
-    (event: ReactPointerEvent) => {
-      event.ev.preventDefault()
-      event.ev.stopPropagation()
+    (
+      event: ReactPointerEvent,
+      options?: {
+        preventDefault?: boolean
+        stopPropagation?: boolean
+      }
+    ) => {
+      if (options?.preventDefault === false) {
+        //console.log('!preventDefault', event)
+      } else {
+        event.ev.preventDefault()
+      }
+      if (options?.stopPropagation === false) {
+        //console.log('!stopPropagation', event)
+      } else {
+        event.ev.stopPropagation()
+      }
       pointerSend(event)
     },
     [pointerSend]
@@ -100,7 +136,8 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
       if (toucheventmask) {
         return
       }
-      send({ type: 'TOUCH.START', ev })
+      // skip preventDefault to enable emulated "click"
+      send({ type: 'TOUCH.START', ev }, { preventDefault: false })
     },
     [send]
   )
@@ -118,12 +155,18 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
       if (toucheventmask) {
         return
       }
-      send({ type: 'TOUCH.END', ev })
+      // skip preventDefault to enable emulated "click"
+      send({ type: 'TOUCH.END', ev }, { preventDefault: false })
     },
     [send]
   )
   const sendClick = useCallback(
-    (ev: MouseEvent) => send({ type: 'CLICK', ev }),
+    (ev: MouseEvent) => {
+      if (clickeventmask) {
+        return
+      }
+      send({ type: 'CLICK', ev })
+    },
     [send]
   )
   const sendContextMenuu = useCallback(
@@ -176,7 +219,7 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
     sendWheel,
   ])
 
-  const mode = useSelector(pointerRef, (snapshot) => snapshot.context.mode)
+  const mode = useSelector(pointerRef, selectMode)
 
   useEffect(() => {
     const e = containerRef.current
@@ -187,6 +230,19 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
     toucheventmask = mode !== 0
     wheeleventmask = mode !== 0
   }, [containerRef, mode, sendWheel])
+
+  const locked = useSelector(pointerRef, selectLocked)
+
+  useEffect(() => {
+    const e = containerRef.current
+    if (e === null) {
+      return
+    }
+    pointereventmask = locked
+    toucheventmask = locked
+    wheeleventmask = locked
+    clickeventmask = locked
+  }, [containerRef, locked])
 
   useEffect(() => {
     if (pointer.hasTag('rendering')) {

@@ -1,0 +1,19 @@
+.balloon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 60vmin;
+  height: 60vmin;
+  pointer-events: none;
+}
+
+.balloon > path.bg {
+  fill: black;
+  stroke: none;
+}
+
+.balloon > path.fg {
+  fill: white;
+  stroke: grey;
+  stroke-width: 0.1px;
+}

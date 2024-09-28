@@ -2,15 +2,25 @@ import './Debug.css'
 import { showBox, showNumber, showPoint } from './lib/show'
 import { Touches } from './lib/touch'
 import { PointerState } from './lib/xstate-pointer'
+import { SearchState } from './lib/xstate-search'
+import { UiState } from './lib/xstate-ui'
 
 interface DebugProps {
   _container: null | HTMLDivElement
+  _ui: UiState
   _pointer: PointerState
   _touches: Touches
+  _search: SearchState
 }
 
 export const Debug = (props: Readonly<DebugProps>) => {
-  const { _container: container, _pointer: pointer, _touches: touches } = props
+  const {
+    _container: container,
+    _ui: ui,
+    _pointer: pointer,
+    _touches: touches,
+    _search: search,
+  } = props
   const {
     context: { layout },
   } = pointer
@@ -20,6 +30,8 @@ export const Debug = (props: Readonly<DebugProps>) => {
       <p>Debug</p>
       <ul>
         {[
+          ['Ui', ui.value.Ui],
+          ['Search', search.value],
           ['Pointer', pointer.value.Pointer],
           ['Slider.PointerHandler', pointer.value.Slider.PointerHandler],
           ['Slider.ScrollHandler', pointer.value.Slider.ScrollHandler],

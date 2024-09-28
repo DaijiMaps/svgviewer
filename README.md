@@ -1,6 +1,6 @@
-# svgviewer
+# svgmapviewer
 
-https://svgviewer.pages.dev/
+https://svgmapviewer.pages.dev/
 
 ## tree
 

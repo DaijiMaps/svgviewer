@@ -1,9 +1,9 @@
 //// zoomToScale
 
-import { svgViewerConfig } from './config'
+import { svgMapViewerConfig } from './config'
 
 export const zoomToScale = (z: number) =>
-  Math.pow(svgViewerConfig.zoomFactor, z)
+  Math.pow(svgMapViewerConfig.zoomFactor, z)
 
 //// isUndefined
 //// isNotUndefined

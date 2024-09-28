@@ -1,10 +1,10 @@
 import { useContext } from 'react'
 import './App.css'
-import { SvgViewerConfigContext } from './svgviewer'
+import { SvgMapViewerConfigContext } from './svgmapviewer'
 import { Viewer } from './Viewer'
 
 function App() {
-  const config = useContext(SvgViewerConfigContext)
+  const config = useContext(SvgMapViewerConfigContext)
 
   return (
     <Viewer>

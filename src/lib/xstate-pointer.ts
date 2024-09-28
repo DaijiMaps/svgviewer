@@ -3,12 +3,14 @@ import {
   ActorRefFrom,
   and,
   assign,
+  enqueueActions,
   not,
   raise,
   setup,
   StateFrom,
   stateIn,
 } from 'xstate'
+import { GuardPredicate } from 'xstate/guards'
 import {
   Animation,
   animationEndLayout,
@@ -26,6 +28,7 @@ import {
   recenterLayout,
   relocLayout,
   scrollLayout,
+  toSvg,
 } from './layout'
 import { toggleMode } from './mode'
 import {
@@ -38,8 +41,11 @@ import {
   resetTouches,
   Touches,
 } from './touch'
+import { isDefined } from './utils'
 import { VecVec as Vec, vecMul, vecSub, vecVec } from './vec/prefixed'
+import { balloonMachine } from './xstate-balloon'
 import { scrollMachine } from './xstate-scroll'
+import { searchMachine } from './xstate-search'
 
 const DIST_LIMIT = 10
 
@@ -47,14 +53,22 @@ const DIST_LIMIT = 10
 //// PointerDOMEvent
 //// _PointerEvent
 
+export type SearchCb = (client: Vec, svg: Vec) => void
+export type UiOpenCb = (ok: boolean) => void
+
 export type PointerInput = {
   containerRef: RefObject<HTMLDivElement>
   layout: Layout
+  searchCb?: SearchCb
+  lockCb?: UiOpenCb
 }
 
 export type PointerContext = {
   containerRef: RefObject<HTMLDivElement>
   layout: Layout
+  searchCb?: SearchCb
+  lockCb?: UiOpenCb
+  locked: boolean
   focus: Vec
   mode: number
   expand: number
@@ -76,21 +90,23 @@ type PointerExternalEvent =
   | { type: 'SCROLL.GET.DONE'; scroll: BoxBox }
   | { type: 'SCROLL.SLIDE.DONE' }
 
-type PointerInternalEvent =
-  | { type: 'ANIMATION' }
-  | { type: 'ANIMATION.DONE' }
+type PointerEventAnimation = { type: 'ANIMATION' } | { type: 'ANIMATION.DONE' }
+type PointerEventDrag =
   | { type: 'DRAG' }
   | { type: 'DRAG.DONE' }
   | { type: 'DRAG.CANCEL' }
+type PointerEventTouch =
   | { type: 'TOUCH' }
   | { type: 'TOUCH.DONE' }
   | { type: 'TOUCH.START.DONE' }
   | { type: 'TOUCH.MOVE.DONE' }
   | { type: 'TOUCH.END.DONE' }
+type PointerEventSlide =
   | { type: 'SLIDE' }
   | { type: 'SLIDE.DONE' }
   | { type: 'SLIDE.DRAG.DONE' }
   | { type: 'SLIDE.DRAG.SLIDE' }
+type PointerEventExpand =
   | { type: 'EXPAND'; n?: number }
   | { type: 'EXPAND.DONE' }
   | { type: 'EXPAND.EXPANDED' }
@@ -99,12 +115,27 @@ type PointerInternalEvent =
   | { type: 'UNEXPAND.DONE' }
   | { type: 'UNEXPAND.UNEXPANDED' }
   | { type: 'UNEXPAND.RENDERED' }
+type PointerEventMoveZoomPan =
   | { type: 'MOVE' }
   | { type: 'MOVE.DONE' }
   | { type: 'ZOOM' }
   | { type: 'ZOOM.DONE' }
   | { type: 'PAN' }
   | { type: 'PAN.DONE' }
+type PointerEventSearch =
+  | { type: 'SEARCH.LOCK'; p: Vec; psvg: Vec }
+  | { type: 'SEARCH.UNLOCK' }
+type PointerEventLock = { type: 'LOCK' } | { type: 'UNLOCK' }
+
+type PointerInternalEvent =
+  | PointerEventAnimation
+  | PointerEventDrag
+  | PointerEventTouch
+  | PointerEventSlide
+  | PointerEventExpand
+  | PointerEventMoveZoomPan
+  | PointerEventSearch
+  | PointerEventLock
 
 export type PointerDOMEvent =
   | MouseEvent
@@ -113,7 +144,7 @@ export type PointerDOMEvent =
   | TouchEvent
   | KeyboardEvent
 
-type PointerEventCick = { type: 'CLICK'; ev: MouseEvent }
+type PointerEventClick = { type: 'CLICK'; ev: MouseEvent }
 type PointerEventContextMenu = { type: 'CONTEXTMENU'; ev: MouseEvent }
 type PointerEventWheel = { type: 'WHEEL'; ev: WheelEvent }
 type PointerEventKeyDown = { type: 'KEY.DOWN'; ev: KeyboardEvent }
@@ -128,7 +159,7 @@ type PointerEventTouchEnd = { type: 'TOUCH.END'; ev: TouchEvent }
 type PointerEventTouchCancel = { type: 'TOUCH.CANCEL'; ev: TouchEvent }
 
 export type ReactPointerEvent =
-  | PointerEventCick
+  | PointerEventClick
   | PointerEventContextMenu
   | PointerEventWheel
   | PointerEventPointerDown
@@ -377,16 +408,41 @@ export const pointerMachine = setup({
     toggleMode: assign({
       mode: ({ context: { mode } }) => toggleMode(mode),
     }),
+    search: ({ context: { layout, searchCb, focus } }) => {
+      if (isDefined(searchCb)) {
+        console.log('searchCb!')
+        const svg = toSvg(layout, focus)
+        searchCb(focus, svg)
+      }
+    },
+    searchLock: enqueueActions(
+      ({ enqueue, context: { lockCb } }, { ok }: { ok: boolean }) => {
+        console.log('searchLock', ok)
+        if (lockCb !== undefined) {
+          enqueue(() => lockCb(ok))
+          if (ok) {
+            enqueue.assign({
+              locked: true,
+            })
+          }
+        }
+      }
+    ),
   },
   actors: {
     scroll: scrollMachine,
+    search: searchMachine,
+    balloon: balloonMachine,
   },
 }).createMachine({
   type: 'parallel',
   id: 'pointer',
-  context: ({ input: { containerRef, layout } }) => ({
+  context: ({ input: { containerRef, layout, searchCb, lockCb } }) => ({
     containerRef,
     layout,
+    searchCb,
+    lockCb,
+    locked: false,
     focus: boxCenter(layout.container),
     mode: 0,
     expand: 1,
@@ -409,6 +465,31 @@ export const pointerMachine = setup({
     },
   ],
   states: {
+    Locker: {
+      on: {
+        'SEARCH.LOCK': [
+          {
+            guard: 'idle',
+            actions: [
+              () => console.log('LOCK success'),
+              {
+                type: 'searchLock',
+                params: { ok: true },
+              },
+            ],
+          },
+          {
+            actions: [
+              () => console.log('LOCK fail'),
+              {
+                type: 'searchLock',
+                params: { ok: false },
+              },
+            ],
+          },
+        ],
+      },
+    },
     Pointer: {
       initial: 'Idle',
       states: {
@@ -496,9 +577,13 @@ export const pointerMachine = setup({
             ],
             CLICK: {
               actions: [
+                'resetTouches',
                 {
                   type: 'focus',
                   params: ({ event }) => ({ ev: event.ev }),
+                },
+                {
+                  type: 'search',
                 },
               ],
               target: 'Idle',
@@ -537,6 +622,14 @@ export const pointerMachine = setup({
               },
               {
                 target: 'Touching.Touching',
+              },
+            ],
+            'SEARCH.LOCK': [
+              {
+                guard: not('idle'),
+              },
+              {
+                target: 'Locked',
               },
             ],
           },
@@ -637,6 +730,19 @@ export const pointerMachine = setup({
             },
           },
         },
+        Locked: {
+          on: {
+            'SEARCH.UNLOCK': {
+              actions: [
+                () => console.log('UNLOCK'),
+                assign({
+                  locked: false,
+                }),
+              ],
+              target: 'Idle',
+            },
+          },
+        },
       },
     },
     Slider: {
@@ -667,7 +773,7 @@ export const pointerMachine = setup({
                   },
                   {
                     guard: 'isMultiTouch',
-                    target: 'Inactive',
+                    target: 'Done',
                   },
                   {
                     guard: 'sliding',
@@ -696,7 +802,7 @@ export const pointerMachine = setup({
                     target: 'Sliding',
                   },
                   {
-                    target: 'Inactive',
+                    target: 'Done',
                   },
                 ],
                 'DRAG.CANCEL': [
@@ -705,7 +811,7 @@ export const pointerMachine = setup({
                     target: 'Sliding',
                   },
                   {
-                    target: 'Inactive',
+                    target: 'Done',
                   },
                 ],
               },
@@ -714,10 +820,13 @@ export const pointerMachine = setup({
               on: {
                 'SLIDE.DRAG.DONE': {
                   guard: not('slidingDragBusy'),
-                  actions: 'endMove',
-                  target: 'Inactive',
+                  target: 'Done',
                 },
               },
+            },
+            Done: {
+              entry: 'endMove',
+              always: 'Inactive',
             },
           },
         },
@@ -1119,10 +1228,24 @@ export const pointerMachine = setup({
           on: {
             'EXPAND.DONE': {
               actions: 'toggleMode',
-              target: 'Panning',
+              target: 'BeforePanning',
             },
             'UNEXPAND.DONE': {
               target: 'Idle',
+            },
+          },
+        },
+        // XXX work-around - ignore click right after touchend
+        // XXX otherwise PAN mode is exited immediately
+        BeforePanning: {
+          after: {
+            500: {
+              target: 'Panning',
+            },
+          },
+          on: {
+            CLICK: {
+              target: 'Panning',
             },
           },
         },
@@ -1163,3 +1286,10 @@ export type PointerState = StateFrom<typeof pointerMachine>
 export type PointerSend = (events: _PointerEvent) => void
 
 export type PointerRef = ActorRefFrom<typeof pointerMachine>
+
+export type PointerGuard = GuardPredicate<
+  PointerContext,
+  _PointerEvent,
+  undefined,
+  never
+>

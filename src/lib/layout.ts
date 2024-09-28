@@ -60,6 +60,9 @@ export function makeLayout(config: LayoutConfig): Layout {
   }
 }
 
+export const toSvg = (layout: Layout, p: Vec): Vec =>
+  transformPoint(toMatrixSvg(layout), p)
+
 //// expandLayoutCenter
 //// expandLayout
 
@@ -68,7 +71,7 @@ export const expandLayoutCenter = (layout: Layout, expand: number): Layout => {
 }
 
 export const expandLayout = (layout: Layout, s: number, focus: Vec): Layout => {
-  const o = transformPoint(toMatrixSvg(layout), focus)
+  const o = toSvg(layout, focus)
 
   return {
     ...layout,

@@ -1,6 +1,48 @@
+import { createElement } from 'react'
 import { Box } from './box/main'
+import { Vec } from './vec'
 
-export interface SvgViewerConfig {
+interface Info {
+  title: string
+}
+
+export type { Info }
+
+export interface SearchReq {
+  p: Vec
+  psvg: Vec
+}
+
+export interface SearchRes {
+  p: Vec
+  psvg: Vec
+  info: Readonly<Info>
+}
+
+export type SearchCb = (
+  client: Vec,
+  svg: Vec
+  // eslint-disable-next-line functional/no-return-void
+) => void
+
+export type SearchDoneCb = (
+  res: Readonly<null | SearchRes>
+  // eslint-disable-next-line functional/no-return-void
+) => void
+
+// eslint-disable-next-line functional/no-return-void
+export type UiOpenCb = (p: Vec, psvg: Vec, info: Readonly<Info>) => void
+
+// eslint-disable-next-line functional/no-return-void
+export type UiOpenDoneCb = (ok: boolean) => void
+
+// eslint-disable-next-line functional/no-return-void
+export type UiCloseCb = () => void
+
+export type RenderInfo = (props: Readonly<{ info: Info }>) => JSX.Element
+
+// eslint-disable-next-line functional/no-mixed-types
+export interface SvgMapViewerConfig {
   root: string
   map: string
   href: string
@@ -16,12 +58,26 @@ export interface SvgViewerConfig {
   dragStepAlpha: number
   dragStepStepLimit: number
   dragStepMaxCount: number
+  searchStartCbs: SearchCb[]
+  searchCbs: SearchCb[]
+  searchDoneCbs: SearchDoneCb[]
+  searchEndCbs: SearchDoneCb[]
+  uiOpenCbs: UiOpenCb[]
+  uiOpenDoneCbs: UiOpenDoneCb[]
+  uiCloseCbs: UiCloseCb[]
+  uiCloseDoneCbs: UiCloseCb[]
+  renderInfo: RenderInfo
 }
 
-export type SvgViewerConfigUser = Partial<SvgViewerConfig>
+export type SvgMapViewerConfigUser = Partial<SvgMapViewerConfig>
 
-// eslint-disable-next-line functional/no-let, prefer-const
-export let svgViewerConfig: SvgViewerConfig = {
+type SvgMapViewerConfigBase = SvgMapViewerConfig
+
+const renderInfoDefault: RenderInfo = (props: Readonly<{ info: Info }>) =>
+  createElement('p', {}, props.info.title)
+
+// eslint-disable-next-line functional/no-let
+export let svgMapViewerConfig: SvgMapViewerConfig = {
   root: 'root',
   map: 'map',
   href: 'map.svg',
@@ -37,12 +93,28 @@ export let svgViewerConfig: SvgViewerConfig = {
   dragStepAlpha: 0.2,
   dragStepStepLimit: 10,
   dragStepMaxCount: 100,
+  searchStartCbs: [],
+  searchCbs: [],
+  searchDoneCbs: [],
+  searchEndCbs: [],
+  uiOpenCbs: [],
+  uiOpenDoneCbs: [],
+  uiCloseCbs: [],
+  uiCloseDoneCbs: [],
+  renderInfo: renderInfoDefault,
 }
 
-export function updateSvgViewerConfig(
-  config: Readonly<Partial<SvgViewerConfig>>
+export function updateSvgMapViewerConfig(
+  config: Readonly<Partial<SvgMapViewerConfig>>
   // eslint-disable-next-line functional/no-return-void
 ): void {
   // eslint-disable-next-line functional/no-expression-statements
-  svgViewerConfig = { ...svgViewerConfig, ...config }
+  svgMapViewerConfig = {
+    ...svgMapViewerConfig,
+    ...(config as SvgMapViewerConfigBase),
+  }
+}
+
+export function getSvgMapViewerConfig() {
+  return svgMapViewerConfig
 }

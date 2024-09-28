@@ -4,23 +4,17 @@ import './Svg.css'
 
 interface SvgProps {
   _viewBox: Box
-  width: number
-  height: number
   onAnimationEnd?: React.AnimationEventHandler<SVGSVGElement>
 }
 
 export const Svg = (props: Readonly<PropsWithChildren<SvgProps>>) => {
   const { _viewBox: viewBox } = props
-  const { onAnimationEnd, width, height } = props
+  const { onAnimationEnd } = props
 
   return (
     <svg
-      className="svg"
+      className="content svg"
       viewBox={boxToViewBox(viewBox)}
-      style={{
-        width,
-        height,
-      }}
       onAnimationEnd={onAnimationEnd}
     >
       {props.children}

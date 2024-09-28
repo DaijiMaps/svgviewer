@@ -1,0 +1,21 @@
+.content {
+  overflow: hidden;
+}
+
+.detail {
+  width: 40vmin;
+  height: 40vmin;
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 1em;
+}
+
+.detail > h3 {
+  margin: 1.5em;
+  text-align: center;
+}
+
+.detail > p {
+  margin: 0.5em;
+}

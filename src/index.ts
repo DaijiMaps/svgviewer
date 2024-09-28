@@ -1,5 +1,9 @@
-import { svgviewer, SvgViewerConfig, SvgViewerConfigUser } from './svgviewer'
+import {
+  svgmapviewer,
+  SvgMapViewerConfig,
+  SvgMapViewerConfigUser,
+} from './svgmapviewer'
 
-export type { SvgViewerConfig, SvgViewerConfigUser }
+export type { SvgMapViewerConfig, SvgMapViewerConfigUser }
 
-export { svgviewer }
+export { svgmapviewer }

@@ -5,18 +5,18 @@ import App from './App'
 import './index.css'
 import { Box } from './lib/box/main'
 import {
-  SvgViewerConfig,
-  svgViewerConfig,
-  SvgViewerConfigUser,
-  updateSvgViewerConfig,
+  SvgMapViewerConfig,
+  svgMapViewerConfig,
+  SvgMapViewerConfigUser,
+  updateSvgMapViewerConfig,
 } from './lib/config'
+import { searchSearchDone, searchSearchStart } from './lib/search'
 
-export type { SvgViewerConfig, SvgViewerConfigUser }
+export type { SvgMapViewerConfig, SvgMapViewerConfigUser }
 
-export const SvgViewerConfigContext =
-  createContext<SvgViewerConfig>(svgViewerConfig)
+export const SvgMapViewerConfigContext = createContext(svgMapViewerConfig)
 
-export function svgviewer(configUser: Readonly<SvgViewerConfigUser>) {
+export function svgmapviewer(configUser: Readonly<SvgMapViewerConfigUser>) {
   const origViewBox: Box = {
     x: 0,
     y: 0,
@@ -24,22 +24,27 @@ export function svgviewer(configUser: Readonly<SvgViewerConfigUser>) {
     height: typeof configUser.height === 'number' ? configUser.height : 0,
   }
   // eslint-disable-next-line functional/no-expression-statements
-  updateSvgViewerConfig({
+  updateSvgMapViewerConfig({
     origViewBox,
     ...configUser,
   })
-  const config: SvgViewerConfig = {
-    ...svgViewerConfig,
+  const config: SvgMapViewerConfig = {
+    ...svgMapViewerConfig,
     origViewBox,
     ...configUser,
   }
 
+  // eslint-disable-next-line functional/no-expression-statements, functional/immutable-data
+  svgMapViewerConfig.searchStartCbs.push(searchSearchStart)
+  // eslint-disable-next-line functional/no-expression-statements, functional/immutable-data
+  svgMapViewerConfig.searchDoneCbs.push(searchSearchDone)
+
   // eslint-disable-next-line functional/no-expression-statements
   createRoot(document.getElementById(config.root)!).render(
     <StrictMode>
-      <SvgViewerConfigContext.Provider value={config}>
+      <SvgMapViewerConfigContext.Provider value={config}>
         <App />
-      </SvgViewerConfigContext.Provider>
+      </SvgMapViewerConfigContext.Provider>
       <svg>
         <defs>
           <image

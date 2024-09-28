@@ -77,11 +77,11 @@ export { fromTransform, transformMove, transformScale }
 //// matrixTranslate
 //// matrixScale
 
-function matrixTranslate(x: Matrix, m: Move): Matrix {
+function matrixTranslate(x: Readonly<Matrix>, m: Move): Matrix {
   return matrixMultiply(x, fromMove(m))
 }
 
-function matrixScale(x: Matrix, s: Scale): Matrix {
+function matrixScale(x: Readonly<Matrix>, s: Scale): Matrix {
   return matrixMultiply(x, fromScale(s))
 }
 
@@ -89,7 +89,7 @@ export { matrixScale, matrixTranslate }
 
 ////
 
-function transformPoint<T extends Vec>(m: Matrix, t: T): T {
+function transformPoint<T extends Vec>(m: Readonly<Matrix>, t: T): T {
   const { x, y } = t
   const [p, q] = matrixApply(m, [x, y], 1)
   return { ...t, x: p, y: q }
