@@ -1,4 +1,6 @@
-// eslint-disable-next-line functional/no-expression-statements, functional/no-return-void
+/* eslint-disable functional/no-return-void */
+/* eslint-disable functional/no-expression-statements */
+
 onmessage = function (e: Readonly<MessageEvent>) {
   const psvg = e.data.psvg
 
@@ -6,6 +8,5 @@ onmessage = function (e: Readonly<MessageEvent>) {
     psvg,
     name: `Found: POI: (${psvg.x},${psvg.y})`,
   }
-  // eslint-disable-next-line functional/no-expression-statements, functional/no-return-void
   new Promise(() => this.postMessage(res))
 }

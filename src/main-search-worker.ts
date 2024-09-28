@@ -1,6 +1,7 @@
+/* eslint-disable functional/no-return-void */
+/* eslint-disable functional/no-expression-statements */
 import type { SearchReq, SearchRes } from './main-search'
 
-// eslint-disable-next-line functional/no-expression-statements, functional/no-return-void
 onmessage = function (e: Readonly<MessageEvent<SearchReq>>) {
   const p = e.data.p
   const psvg = e.data.psvg
@@ -23,6 +24,5 @@ onmessage = function (e: Readonly<MessageEvent<SearchReq>>) {
     },
   }
 
-  // eslint-disable-next-line functional/no-expression-statements, functional/no-return-void
   new Promise(() => this.postMessage(!ok ? null : res))
 }

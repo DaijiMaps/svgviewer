@@ -1,3 +1,6 @@
+/* eslint-disable functional/immutable-data */
+/* eslint-disable functional/no-return-void */
+/* eslint-disable functional/no-expression-statements */
 import { svgMapViewerConfig } from './lib/config'
 import { Vec } from './lib/vec'
 import { Info } from './main-info'
@@ -16,9 +19,7 @@ export interface SearchRes {
 
 const worker = new SearchWorker()
 
-// eslint-disable-next-line functional/no-expression-statements, functional/immutable-data, functional/no-return-void
 worker.onmessage = (e: Readonly<MessageEvent<null | SearchRes>>) => {
-  // eslint-disable-next-line functional/no-expression-statements, functional/no-return-void
   svgMapViewerConfig.searchDoneCbs.forEach((cb) =>
     cb(
       e.data === null
@@ -28,8 +29,6 @@ worker.onmessage = (e: Readonly<MessageEvent<null | SearchRes>>) => {
   )
 }
 
-// eslint-disable-next-line functional/no-return-void
 export function workerSearchStart(p: Vec, psvg: Vec) {
-  // eslint-disable-next-line functional/no-expression-statements
   worker.postMessage({ p, psvg })
 }

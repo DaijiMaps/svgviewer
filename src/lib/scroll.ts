@@ -1,6 +1,9 @@
+/* eslint-disable functional/prefer-immutable-types */
+/* eslint-disable functional/immutable-data */
+/* eslint-disable functional/no-expression-statements */
+/* eslint-disable functional/no-conditional-statements */
 import { BoxBox as Box, boxBox, BoxBox } from './box/prefixed'
 
-// eslint-disable-next-line functional/prefer-immutable-types
 export const syncScroll = (e: null | HTMLElement, b: Box): boolean => {
   // assume valid if scrollLeft exists
   if (e === null || e.scrollLeft === null || b === null) {
@@ -18,14 +21,10 @@ export const syncScroll = (e: null | HTMLElement, b: Box): boolean => {
   if (left < 0 || top < 0) {
     return false
   }
-  // eslint-disable-next-line functional/no-conditional-statements
   if (e.scrollLeft !== left) {
-    // eslint-disable-next-line functional/no-expression-statements, functional/immutable-data
     e.scrollLeft = left
   }
-  // eslint-disable-next-line functional/no-conditional-statements
   if (e.scrollTop !== top) {
-    // eslint-disable-next-line functional/no-expression-statements, functional/immutable-data
     e.scrollTop = top
   }
 

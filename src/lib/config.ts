@@ -1,3 +1,8 @@
+/* eslint-disable functional/no-expression-statements */
+/* eslint-disable functional/no-let */
+/* eslint-disable functional/no-mixed-types */
+/* eslint-disable functional/no-return-void */
+/* eslint-disable prettier/prettier */
 import { createElement } from 'react'
 import { Box } from './box/main'
 import { Vec } from './vec'
@@ -19,29 +24,18 @@ export interface SearchRes {
   info: Readonly<Info>
 }
 
-export type SearchCb = (
-  client: Vec,
-  svg: Vec
-  // eslint-disable-next-line functional/no-return-void
-) => void
+export type SearchCb = (client: Vec, svg: Vec) => void
 
-export type SearchDoneCb = (
-  res: Readonly<null | SearchRes>
-  // eslint-disable-next-line functional/no-return-void
-) => void
+export type SearchDoneCb = (res: Readonly<null | SearchRes>) => void
 
-// eslint-disable-next-line functional/no-return-void
 export type UiOpenCb = (p: Vec, psvg: Vec, info: Readonly<Info>) => void
 
-// eslint-disable-next-line functional/no-return-void
 export type UiOpenDoneCb = (ok: boolean) => void
 
-// eslint-disable-next-line functional/no-return-void
 export type UiCloseCb = () => void
 
 export type RenderInfo = (props: Readonly<{ info: Info }>) => JSX.Element
 
-// eslint-disable-next-line functional/no-mixed-types
 export interface SvgMapViewerConfig {
   root: string
   map: string
@@ -76,7 +70,6 @@ type SvgMapViewerConfigBase = SvgMapViewerConfig
 const renderInfoDefault: RenderInfo = (props: Readonly<{ info: Info }>) =>
   createElement('p', {}, props.info.title)
 
-// eslint-disable-next-line functional/no-let
 export let svgMapViewerConfig: SvgMapViewerConfig = {
   root: 'root',
   map: 'map',
@@ -106,9 +99,7 @@ export let svgMapViewerConfig: SvgMapViewerConfig = {
 
 export function updateSvgMapViewerConfig(
   config: Readonly<Partial<SvgMapViewerConfig>>
-  // eslint-disable-next-line functional/no-return-void
 ): void {
-  // eslint-disable-next-line functional/no-expression-statements
   svgMapViewerConfig = {
     ...svgMapViewerConfig,
     ...(config as SvgMapViewerConfigBase),

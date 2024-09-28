@@ -1,3 +1,5 @@
+/* eslint-disable functional/immutable-data */
+/* eslint-disable functional/no-expression-statements */
 /* eslint-disable functional/no-return-void */
 import { createContext, StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -23,7 +25,6 @@ export function svgmapviewer(configUser: Readonly<SvgMapViewerConfigUser>) {
     width: typeof configUser.width === 'number' ? configUser.width : 0,
     height: typeof configUser.height === 'number' ? configUser.height : 0,
   }
-  // eslint-disable-next-line functional/no-expression-statements
   updateSvgMapViewerConfig({
     origViewBox,
     ...configUser,
@@ -34,12 +35,9 @@ export function svgmapviewer(configUser: Readonly<SvgMapViewerConfigUser>) {
     ...configUser,
   }
 
-  // eslint-disable-next-line functional/no-expression-statements, functional/immutable-data
   svgMapViewerConfig.searchStartCbs.push(searchSearchStart)
-  // eslint-disable-next-line functional/no-expression-statements, functional/immutable-data
   svgMapViewerConfig.searchDoneCbs.push(searchSearchDone)
 
-  // eslint-disable-next-line functional/no-expression-statements
   createRoot(document.getElementById(config.root)!).render(
     <StrictMode>
       <SvgMapViewerConfigContext.Provider value={config}>
