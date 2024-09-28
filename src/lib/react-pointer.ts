@@ -100,12 +100,12 @@ export const usePointer = (containerRef: RefObject<HTMLDivElement>) => {
       }
     ) => {
       if (options?.preventDefault === false) {
-        //console.log('!preventDefault', event)
+        // skip
       } else {
         event.ev.preventDefault()
       }
       if (options?.stopPropagation === false) {
-        //console.log('!stopPropagation', event)
+        // skip
       } else {
         event.ev.stopPropagation()
       }

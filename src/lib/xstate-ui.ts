@@ -102,7 +102,6 @@ export const uiMachine = setup({
     }),
     handleBalloon: assign({
       balloon: ({ context: { balloon } }) => {
-        console.log('handleBalloon')
         const op = balloon.open ? openCloseOpened : openCloseClosed
         const x = op(balloon)
         return x === null ? balloon : x
@@ -122,7 +121,6 @@ export const uiMachine = setup({
     }),
     handleShadow: assign({
       shadow: ({ context: { shadow } }) => {
-        console.log('handleShadow')
         const op = shadow.open ? openCloseOpened : openCloseClosed
         const x = op(shadow)
         return x === null ? shadow : x
@@ -155,7 +153,6 @@ export const uiMachine = setup({
             },
             DETAIL: {
               actions: [
-                () => console.log('detail!'),
                 {
                   type: 'detail',
                   params: ({ event: { p, dir, info } }) => ({

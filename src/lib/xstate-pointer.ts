@@ -410,14 +410,12 @@ export const pointerMachine = setup({
     }),
     search: ({ context: { layout, searchCb, focus } }) => {
       if (isDefined(searchCb)) {
-        console.log('searchCb!')
         const svg = toSvg(layout, focus)
         searchCb(focus, svg)
       }
     },
     searchLock: enqueueActions(
       ({ enqueue, context: { lockCb } }, { ok }: { ok: boolean }) => {
-        console.log('searchLock', ok)
         if (lockCb !== undefined) {
           enqueue(() => lockCb(ok))
           if (ok) {
@@ -471,7 +469,6 @@ export const pointerMachine = setup({
           {
             guard: 'idle',
             actions: [
-              () => console.log('LOCK success'),
               {
                 type: 'searchLock',
                 params: { ok: true },
@@ -480,7 +477,6 @@ export const pointerMachine = setup({
           },
           {
             actions: [
-              () => console.log('LOCK fail'),
               {
                 type: 'searchLock',
                 params: { ok: false },
@@ -734,7 +730,6 @@ export const pointerMachine = setup({
           on: {
             'SEARCH.UNLOCK': {
               actions: [
-                () => console.log('UNLOCK'),
                 assign({
                   locked: false,
                 }),

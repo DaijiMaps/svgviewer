@@ -11,7 +11,6 @@ export const syncScroll = (e: null | HTMLElement, b: Box): boolean => {
     Math.abs(e.scrollWidth - b.width) > 1 ||
     Math.abs(e.scrollHeight - b.height) > 1
   ) {
-    //console.log('syncScroll: wrong element size')
     return false
   }
   const left = Math.round(-b.x)
@@ -19,7 +18,6 @@ export const syncScroll = (e: null | HTMLElement, b: Box): boolean => {
   if (left < 0 || top < 0) {
     return false
   }
-  //console.log("syncScroll", e.scrollLeft, e.scrollTop, "->", left, top);
   // eslint-disable-next-line functional/no-conditional-statements
   if (e.scrollLeft !== left) {
     // eslint-disable-next-line functional/no-expression-statements, functional/immutable-data

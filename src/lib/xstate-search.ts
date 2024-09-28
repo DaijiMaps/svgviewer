@@ -45,7 +45,6 @@ export const searchMachine = setup({
     notify: enqueueActions(
       ({ context }, { res: { p, psvg, info } }: { res: Res }) => {
         if (context.req !== null) {
-          console.log('cb')
           context.endCb(p, psvg, info)
         }
       }
@@ -67,7 +66,6 @@ export const searchMachine = setup({
       on: {
         SEARCH: {
           actions: [
-            () => console.log('SEARCH!'),
             {
               type: 'start',
               params: ({ event: { p, psvg } }) => ({
@@ -83,7 +81,6 @@ export const searchMachine = setup({
       on: {
         'SEARCH.DONE': {
           actions: [
-            () => console.log('SEARCH.DONE!'),
             {
               type: 'notify',
               params: ({ event: { p, psvg, info } }) => ({
@@ -94,7 +91,6 @@ export const searchMachine = setup({
           target: 'Done',
         },
         'SEARCH.CANCEL': {
-          actions: () => console.log('SEARCH.CANCEL!'),
           target: 'Done',
         },
       },
