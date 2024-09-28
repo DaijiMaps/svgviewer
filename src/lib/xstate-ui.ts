@@ -9,6 +9,7 @@ import {
   StateFrom,
 } from 'xstate'
 import { Info } from './config'
+import { Dir } from './dir'
 import {
   OpenClose,
   openCloseClose,
@@ -29,7 +30,7 @@ export interface UiContext {
   closeDoneCbs: (() => void)[]
   detail: null | {
     p: Vec
-    dir: 0 | 1 | 2 | 3
+    dir: Dir
     info: Info
   }
   header: OpenClose
@@ -43,7 +44,7 @@ export type UiModeEvent =
   | { type: 'CANCEL' }
   | { type: 'FLOOR' }
   | { type: 'MENU' }
-  | { type: 'DETAIL'; p: Vec; psvg: Vec; dir: 0 | 1 | 2 | 3; info: Info }
+  | { type: 'DETAIL'; p: Vec; psvg: Vec; dir: Dir; info: Info }
   | { type: 'HELP' }
 
 export type UiPartEvent =
@@ -78,10 +79,7 @@ export const uiMachine = setup({
       })
     }),
     detail: assign({
-      detail: (
-        _,
-        { p, dir, info }: { p: Vec; dir: 0 | 1 | 2 | 3; info: Info }
-      ) => ({
+      detail: (_, { p, dir, info }: { p: Vec; dir: Dir; info: Info }) => ({
         p: p,
         dir: dir,
         info: info,

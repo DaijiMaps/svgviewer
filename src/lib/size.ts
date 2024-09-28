@@ -1,12 +1,10 @@
+import { Dir } from './dir'
 import { Vec } from './vec'
 
 export interface Size {
   width: number
   height: number
 }
-
-// top, right, botton, left
-export type Dir = 0 | 1 | 2 | 3
 
 export function diag(size: Readonly<Size>, v: Vec): Dir {
   const a = size.width / size.height

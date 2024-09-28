@@ -1,6 +1,7 @@
 import { useSelector } from '@xstate/react'
 import { ReactNode } from 'react'
 import './Balloon.css'
+import { Dir } from './lib/dir'
 import { OpenClose, openCloseIsVisible } from './lib/open-close'
 import { selectLayout } from './lib/react-pointer'
 import { selectBalloon, selectDetail } from './lib/react-ui'
@@ -12,7 +13,7 @@ import { UiRef } from './lib/xstate-ui'
 export interface BalloonPathProps {
   fg: boolean
   d: number
-  dir: 0 | 1 | 2 | 3
+  dir: Dir
   ll: number
   bw: number
   bh: number
@@ -148,7 +149,7 @@ const ds: Vec[] = [
 function balloonStyle(
   { open, animating }: OpenClose,
   o: null | Vec,
-  dir: null | 0 | 1 | 2 | 3
+  dir: null | Dir
 ) {
   if (o === null || dir === null) {
     return ``
