@@ -426,6 +426,11 @@ export const pointerMachine = setup({
         }
       }
     ),
+    searchUnlock: enqueueActions(({ enqueue }) => {
+      enqueue.assign({
+        locked: false,
+      })
+    }),
   },
   actors: {
     scroll: scrollMachine,
@@ -729,11 +734,7 @@ export const pointerMachine = setup({
         Locked: {
           on: {
             'SEARCH.UNLOCK': {
-              actions: [
-                assign({
-                  locked: false,
-                }),
-              ],
+              actions: 'searchUnlock',
               target: 'Idle',
             },
           },
